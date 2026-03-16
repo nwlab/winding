@@ -1,3 +1,24 @@
 [submodule "contrib/CNC-coil-winder"]
 	path = contrib/CNC-coil-winder
 	url = https://github.com/Ianderson27/CNC-coil-winder.git
+[submodule "contrib/TinyG"]
+	path = contrib/TinyG
+	url = https://github.com/synthetos/TinyG.git
+[submodule "contrib/grbl"]
+	path = contrib/grbl
+	url = https://github.com/gnea/grbl.git
+[submodule "contrib/grbl_stm32"]
+	path = contrib/grbl_stm32
+	url = https://github.com/langwadt/grbl_stm32
+[submodule "contrib/S-curve-stepdir"]
+	path = contrib/S-curve-stepdir
+	url = https://github.com/arabel1a/S-curve-stepdir.git
+[submodule "contrib/STM32-GRBL"]
+	path = contrib/STM32-GRBL
+	url = https://github.com/Meekdai/STM32-GRBL.git
+[submodule "contrib/s-curve-motion-planning"]
+	path = contrib/s-curve-motion-planning
+	url = https://github.com/grotius-cnc/s-curve-motion-planning.git
+[submodule "contrib/StepperHAL_STM32F4x1-Library"]
+	path = contrib/StepperHAL_STM32F4x1-Library
+	url = https://github.com/ennio64/StepperHAL_STM32F4x1-Library.git
