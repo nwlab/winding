@@ -1,0 +1,20 @@
+{
+    "cortex-debug.liveWatchRefreshRate": 250,
+    "makefile.configureOnOpen": true,
+    "editor.rulers": [
+        120
+    ],
+    "files.trimTrailingWhitespace": true,
+    "cortex-debug.variableUseNaturalFormat": false,
+    "C_Cpp.default.defines": [
+        "__arm__"
+    ],
+    "[markdown]": {
+        "files.trimTrailingWhitespace": false
+    },
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}"
+    ]
+}

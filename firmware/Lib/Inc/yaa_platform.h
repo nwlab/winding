@@ -1,0 +1,80 @@
+/**
+ * @file    yaa_platform.h
+ * @author  Software development team
+ * @brief   API for platform initialization
+ * @version 1.0
+ * @date    2024-10-17
+ */
+
+#ifndef YAA_PLATFORM_H
+#define YAA_PLATFORM_H
+
+/* ============================================================================
+ * Include Files
+ * ==========================================================================*/
+
+/* Standard includes. */
+#include <stddef.h> // for size_t
+#include <stdint.h>
+
+/* Core includes. */
+#include <yaa_types.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
+/* ============================================================================
+ * Public Type Declarations
+ * ==========================================================================*/
+
+typedef uint32_t (*get_tick_func)(void);
+
+/**
+ * @brief Platform configuration.
+ */
+typedef struct yaa_platform_params
+{
+    /**
+     * @brief Platform id
+     */
+    uint32_t id;
+
+    /**
+     * @brief Platform/ Application name
+     */
+    char *name;
+
+    /**
+     * @brief Timer handle for udelay timeout function @ref yaa_udelay.
+     *        See #TIM_HandleTypeDef.
+     *        Set to NULL to use DWT.
+     */
+    void *udelay_timer;
+
+    /**
+     * @brief Get tick in ms. See #HAL_GetTick
+     */
+    get_tick_func get_tick;
+
+} yaa_platform_params_t;
+
+/* ============================================================================
+ * Global Function Declarations (prototypes)
+ * ==========================================================================*/
+
+/**
+ * @brief Initialize platform
+ *
+ * @param[in]  params Platform configuration
+ *
+ * @return #YAA_ERR_OK on success
+ */
+yaa_err_t yaa_platform_init(const yaa_platform_params_t *params);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // YAA_PLATFORM_H

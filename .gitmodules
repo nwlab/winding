@@ -1,0 +1,3 @@
+[submodule "contrib/CNC-coil-winder"]
+	path = contrib/CNC-coil-winder
+	url = https://github.com/Ianderson27/CNC-coil-winder.git
