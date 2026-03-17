@@ -35,8 +35,15 @@
 
 /** @brief Debug and Error log macros for the ADE7758 driver. */
 #ifdef DEBUG
-    #define ADE7758_DEB(fmt, ...) printf("[ADE7758](%s:%d):" fmt "\n\r", __func__, __LINE__, ##__VA_ARGS__)
-    #define ADE7758_ERR(fmt, ...) printf("[ADE7758](ERROR):" fmt "\n\r", ##__VA_ARGS__)
+    #if defined(__GNUC__) || defined(__clang__)
+        // GCC/Clang: allow zero arguments safely with ##__VA_ARGS__
+        #define ADE7758_DEB(fmt, ...) printf("[ADE7758](%s:%d):"fmt "\r\n", __func__, __LINE__, ##__VA_ARGS__)
+        #define ADE7758_ERR(fmt, ...) printf("[ADE7758](ERROR):" fmt "\r\n", ##__VA_ARGS__)
+    #else
+        // Portable C99: requires at least one argument
+        #define ADE7758_DEB(fmt, ...) printf(fmt, __VA_ARGS__)
+        #define ADE7758_ERR(fmt, ...) printf(fmt, __VA_ARGS__)
+    #endif
 #else
     #define ADE7758_DEB(fmt, ...)   ((void)0)
     #define ADE7758_ERR(fmt, ...)   ((void)0)

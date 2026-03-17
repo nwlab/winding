@@ -34,8 +34,15 @@
 
 /** @brief Debug and Error log macros for the NVRAM driver. */
 #ifdef DEBUG
-    #define NVRAM_DEB(fmt, ...) printf("[NVRAM]:" fmt "\r\n", ##__VA_ARGS__)
-    #define NVRAM_ERR(fmt, ...) printf("[NVRAM](ERROR)(%s:%d):" fmt "\r\n", __func__, __LINE__, ##__VA_ARGS__)
+    #if defined(__GNUC__) || defined(__clang__)
+        // GCC/Clang: allow zero arguments safely with ##__VA_ARGS__
+        #define NVRAM_DEB(fmt, ...) printf("[NVRAM](%s:%d):"fmt "\r\n", __func__, __LINE__, ##__VA_ARGS__)
+        #define NVRAM_ERR(fmt, ...) printf("[NVRAM](ERROR):" fmt "\r\n", ##__VA_ARGS__)
+    #else
+        // Portable C99: requires at least one argument
+        #define NVRAM_DEB(fmt, ...) printf(fmt, __VA_ARGS__)
+        #define NVRAM_ERR(fmt, ...) printf(fmt, __VA_ARGS__)
+    #endif
 #else
     #define NVRAM_DEB(fmt, ...)   ((void)0)
     #define NVRAM_ERR(fmt, ...)   ((void)0)

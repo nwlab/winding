@@ -5,6 +5,8 @@ option(YAA_CONFIG_NETWORK "Enable network support" OFF)
 option(YAA_CONFIG_RTT "Enable SEGGER RTT support" OFF)
 option(YAA_CONFIG_SENSOR "Enable sensor support" OFF)
 option(YAA_CONFIG_TFTP "Enable TFTP protocol support" OFF)
+option(YAA_CONFIG_I2C "Enable I2C support" OFF)
+option(YAA_CONFIG_SAL "Enable SAL support" OFF)
 
 project(yaa_stm32)
 add_library(yaa_stm32 INTERFACE)
@@ -53,17 +55,13 @@ target_sources(yaa_stm32 INTERFACE
     Src/adc/ltc2946.c
     Src/adc/ade7758.c
     Src/hal/yaa_gpio.c
-    Src/hal/yaa_i2c.c
     Src/hal/yaa_spi.c
     Src/onewire/ds2430.c
     Src/onewire/ds2482.c
     Src/yaa_bkpsram.c
     Src/yaa_clock.c
-    Src/yaa_event.c
     Src/yaa_hal.c
-    Src/yaa_mempool.c
     Src/yaa_platform.c
-    Src/yaa_queue.c
     Src/yaa_ring.c
     Src/yaa_time.c
     Src/yaa_util.c
@@ -74,7 +72,6 @@ if(CMAKE_TARGET_ARCHITECTURE_CODE STREQUAL "armv7")
         Src/yaa_bootloader.c
         Src/yaa_flash.c
         Src/yaa_hardfault.c
-        Src/yaa_sal.c
         Src/yaa_wdg.c
     )
 endif()
@@ -83,6 +80,21 @@ endif()
 if(CMAKE_C_STANDARD LESS 11)
     message(ERROR "Generated code requires C11 or higher")
 endif()
+
+if(YAA_CONFIG_SAL)
+    target_sources(yaa_stm32 INTERFACE
+        Src/yaa_mempool.c
+        Src/yaa_sal.c
+        Src/yaa_queue.c
+        Src/yaa_event.c
+    )
+endif(YAA_CONFIG_SAL)
+
+if(YAA_CONFIG_I2C)
+    target_sources(yaa_stm32 INTERFACE
+        Src/hal/yaa_i2c.c
+    )
+endif(YAA_CONFIG_I2C)
 
 if(YAA_CONFIG_CANBUS)
     target_sources(yaa_stm32 INTERFACE

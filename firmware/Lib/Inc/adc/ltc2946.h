@@ -108,6 +108,7 @@
 /* Core includes. */
 #include <hal/yaa_i2c.h>
 #include <yaa_types.h>
+#include <yaa_macro.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -397,7 +398,7 @@ typedef struct ltc2946_values
     uint32_t time_code;
 } ltc2946_values_t;
 
-static_assert(sizeof(ltc2946_values_t) == 44, "Bad size of ltc2946_values_t");
+YAA_STATIC_ASSERT(sizeof(ltc2946_values_t) == 44);
 
 /* ============================================================================
  * Public Variable Declarations

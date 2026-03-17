@@ -28,6 +28,7 @@ extern "C" {
 #include <stdbool.h>
 
 #include <yaa_types.h>
+#include <yaa_macro.h>
 #include <hal/yaa_spi.h>
 #include <hal/yaa_gpio.h>
 
@@ -464,7 +465,7 @@ typedef struct ade7758_values
 
 } ade7758_values_t;
 
-static_assert(sizeof(ade7758_values_t) == 64, "Bad size of ade7758_values_t");
+YAA_STATIC_ASSERT(sizeof(ade7758_values_t) == 64);
 
 /* ============================================================================
  * Public Variable Declarations

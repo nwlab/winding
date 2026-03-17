@@ -1,0 +1,1 @@
+#define HAL_TIM_MODULE_ONLY

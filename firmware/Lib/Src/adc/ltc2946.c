@@ -32,8 +32,15 @@
 
 /** @brief Debug and Error log macroses for the LTC2946 driver. */
 #ifdef DEBUG
-    #define LTC2946_DEB(fmt, ...) printf("[LTC2946](%s:%d):"fmt "\r\n", __func__, __LINE__, ##__VA_ARGS__)
-    #define LTC2946_ERR(fmt, ...) printf("[LTC2946](ERROR):" fmt "\r\n", ##__VA_ARGS__)
+    #if defined(__GNUC__) || defined(__clang__)
+        // GCC/Clang: allow zero arguments safely with ##__VA_ARGS__
+        #define LTC2946_DEB(fmt, ...) printf("[LTC2946](%s:%d):"fmt "\r\n", __func__, __LINE__, ##__VA_ARGS__)
+        #define LTC2946_ERR(fmt, ...) printf("[LTC2946](ERROR):" fmt "\r\n", ##__VA_ARGS__)
+    #else
+        // Portable C99: requires at least one argument
+        #define LTC2946_DEB(fmt, ...) printf(fmt, __VA_ARGS__)
+        #define LTC2946_ERR(fmt, ...) printf(fmt, __VA_ARGS__)
+    #endif
 #else
     #define LTC2946_DEB(fmt, ...)   ((void)0)
     #define LTC2946_ERR(fmt, ...)   ((void)0)

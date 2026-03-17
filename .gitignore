@@ -56,3 +56,10 @@ dkms.conf
 
 # History files
 .history
+
+# Cache files
+.cache
+
+# Build
+build
+firmware/compile_commands.json

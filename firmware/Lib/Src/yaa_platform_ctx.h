@@ -20,6 +20,7 @@
 
 /* Library includes. */
 #include <stm32f4xx_hal.h>
+#include <stm32f4xx_hal_tim.h>
 
 /* Core includes. */
 #include <yaa_platform.h>
