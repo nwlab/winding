@@ -42,6 +42,7 @@ add_subdirectory(cmake/stm32cubemx)
 
 add_subdirectory(Lib)
 add_subdirectory(Middlewares/Third_Party/StepperHAL_STM32F4x1-Library)
+add_subdirectory(Middlewares/Third_Party/WL)
 
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
@@ -71,7 +72,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
 
     # Add user defined libraries
-    yaa_stm32
+    rdnx_stm32
+    wl_motion
     StepperHAL
 )
 

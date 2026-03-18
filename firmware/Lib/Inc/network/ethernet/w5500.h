@@ -5,7 +5,7 @@
  *
  * This module provides initialization, configuration, and link status
  * management for the WIZnet W5500 Ethernet IC. It abstracts low-level SPI
- * communication and GPIO control and integrates with the YAA Ethernet
+ * communication and GPIO control and integrates with the RDNX Ethernet
  * framework.
  *
  * Supported features:
@@ -25,11 +25,11 @@
  * ==========================================================================*/
 
 /* Core includes. */
-#include <yaa_macro.h>
-#include <yaa_types.h>
-#include <yaa_util.h>
-#include <hal/yaa_spi.h>
-#include <network/ethernet/yaa_eth.h>
+#include <rdnx_macro.h>
+#include <rdnx_types.h>
+#include <rdnx_util.h>
+#include <hal/rdnx_spi.h>
+#include <network/ethernet/rdnx_eth.h>
 #include <network/ethernet/w5500_regs.h>
 
 #ifdef __cplusplus
@@ -51,54 +51,54 @@ extern "C"
 #define W5500_BYTE_LOW(value)        ((value) & 0xFF)
 
 /* SPI Frame Structure Masks */
-#define W5500_BSB_MASK               YAA_GENMASK(7, 3)   /* Block Select Bits */
-#define W5500_RWB_MASK               YAA_BIT(2)          /* Read/Write Bit */
-#define W5500_OM_MASK                YAA_GENMASK(1, 0)   /* Operation Mode Bits */
+#define W5500_BSB_MASK               RDNX_GENMASK(7, 3)   /* Block Select Bits */
+#define W5500_RWB_MASK               RDNX_BIT(2)          /* Read/Write Bit */
+#define W5500_OM_MASK                RDNX_GENMASK(1, 0)   /* Operation Mode Bits */
 
 /* Control Byte Construction Helpers */
-#define W5500_BSB(block)             yaa_field_prep(W5500_BSB_MASK, block)
+#define W5500_BSB(block)             rdnx_field_prep(W5500_BSB_MASK, block)
 #define W5500_RWB_READ               0x00
-#define W5500_RWB_WRITE              YAA_BIT(2)
+#define W5500_RWB_WRITE              RDNX_BIT(2)
 #define W5500_OM_VDM                 0x00    /* Variable Data Length Mode */
 #define W5500_OM_FDM_1               0x01    /* Fixed Data Length Mode 1 byte */
 #define W5500_OM_FDM_2               0x02    /* Fixed Data Length Mode 2 bytes */
 #define W5500_OM_FDM_4               0x03    /* Fixed Data Length Mode 4 bytes */
 
 /* Socket Interrupt Register (Sn_IR) values */
-#define W5500_Sn_IR_SEND_OK          YAA_BIT(4)    /* Send operation completed */
-#define W5500_Sn_IR_TIMEOUT          YAA_BIT(3)    /* Timeout occurred */
-#define W5500_Sn_IR_RECV             YAA_BIT(2)    /* Data received */
-#define W5500_Sn_IR_DISCON           YAA_BIT(1)    /* Connection termination requested/completed */
-#define W5500_Sn_IR_CON              YAA_BIT(0)    /* Connection established */
+#define W5500_Sn_IR_SEND_OK          RDNX_BIT(4)    /* Send operation completed */
+#define W5500_Sn_IR_TIMEOUT          RDNX_BIT(3)    /* Timeout occurred */
+#define W5500_Sn_IR_RECV             RDNX_BIT(2)    /* Data received */
+#define W5500_Sn_IR_DISCON           RDNX_BIT(1)    /* Connection termination requested/completed */
+#define W5500_Sn_IR_CON              RDNX_BIT(0)    /* Connection established */
 
 /* Interrupt Register (IR) values */
-#define W5500_IR_CONFLICT            YAA_BIT(7)    /* IP address conflict */
-#define W5500_IR_UNREACH             YAA_BIT(6)    /* Destination unreachable */
-#define W5500_IR_PPPOE               YAA_BIT(5)    /* PPPoE connection closed */
-#define W5500_IR_MP                  YAA_BIT(4)    /* Magic packet received */
+#define W5500_IR_CONFLICT            RDNX_BIT(7)    /* IP address conflict */
+#define W5500_IR_UNREACH             RDNX_BIT(6)    /* Destination unreachable */
+#define W5500_IR_PPPOE               RDNX_BIT(5)    /* PPPoE connection closed */
+#define W5500_IR_MP                  RDNX_BIT(4)    /* Magic packet received */
 
 /* PHY Configuration Register (PHYCFGR) values */
-#define W5500_PHYCFGR_RST            YAA_BIT(7)    /* PHY Reset */
-#define W5500_PHYCFGR_OPMD           YAA_BIT(6)    /* Operation Mode Select */
-#define W5500_PHYCFGR_OPMDC          YAA_GENMASK(5, 3)    /* Operation Mode Configuration */
-#define W5500_PHYCFGR_DPX            YAA_BIT(2)    /* Duplex Status (1=Full, 0=Half) */
-#define W5500_PHYCFGR_SPD            YAA_BIT(1)    /* Speed Status (1=100Mbps, 0=10Mbps) */
-#define W5500_PHYCFGR_LNK            YAA_BIT(0)    /* Link Status (1=Up, 0=Down) */
+#define W5500_PHYCFGR_RST            RDNX_BIT(7)    /* PHY Reset */
+#define W5500_PHYCFGR_OPMD           RDNX_BIT(6)    /* Operation Mode Select */
+#define W5500_PHYCFGR_OPMDC          RDNX_GENMASK(5, 3)    /* Operation Mode Configuration */
+#define W5500_PHYCFGR_DPX            RDNX_BIT(2)    /* Duplex Status (1=Full, 0=Half) */
+#define W5500_PHYCFGR_SPD            RDNX_BIT(1)    /* Speed Status (1=100Mbps, 0=10Mbps) */
+#define W5500_PHYCFGR_LNK            RDNX_BIT(0)    /* Link Status (1=Up, 0=Down) */
 
 /* PHYCFGR Operation Mode Configuration values */
-#define W5500_PHYCFGR_OPMDC_10BT_HD      yaa_field_prep(W5500_PHYCFGR_OPMDC, 0)
+#define W5500_PHYCFGR_OPMDC_10BT_HD      rdnx_field_prep(W5500_PHYCFGR_OPMDC, 0)
 /* 10BT Half-duplex, no auto-nego */
-#define W5500_PHYCFGR_OPMDC_10BT_FD      yaa_field_prep(W5500_PHYCFGR_OPMDC, 1)
+#define W5500_PHYCFGR_OPMDC_10BT_FD      rdnx_field_prep(W5500_PHYCFGR_OPMDC, 1)
 /* 10BT Full-duplex, no auto-nego */
-#define W5500_PHYCFGR_OPMDC_100BT_HD     yaa_field_prep(W5500_PHYCFGR_OPMDC, 2)
+#define W5500_PHYCFGR_OPMDC_100BT_HD     rdnx_field_prep(W5500_PHYCFGR_OPMDC, 2)
 /* 100BT Half-duplex, no auto-nego */
-#define W5500_PHYCFGR_OPMDC_100BT_FD     yaa_field_prep(W5500_PHYCFGR_OPMDC, 3)
+#define W5500_PHYCFGR_OPMDC_100BT_FD     rdnx_field_prep(W5500_PHYCFGR_OPMDC, 3)
 /* 100BT Full-duplex, no auto-nego */
-#define W5500_PHYCFGR_OPMDC_100BT_HD_AN  yaa_field_prep(W5500_PHYCFGR_OPMDC, 4)
+#define W5500_PHYCFGR_OPMDC_100BT_HD_AN  rdnx_field_prep(W5500_PHYCFGR_OPMDC, 4)
 /* 100BT Half-duplex, with auto-nego */
-#define W5500_PHYCFGR_OPMDC_POWER_DOWN   yaa_field_prep(W5500_PHYCFGR_OPMDC, 6)
+#define W5500_PHYCFGR_OPMDC_POWER_DOWN   rdnx_field_prep(W5500_PHYCFGR_OPMDC, 6)
 /* Power down mode */
-#define W5500_PHYCFGR_OPMDC_ALL_AN       yaa_field_prep(W5500_PHYCFGR_OPMDC, 7)
+#define W5500_PHYCFGR_OPMDC_ALL_AN       rdnx_field_prep(W5500_PHYCFGR_OPMDC, 7)
 /* All capable, with auto-nego */
 
 /* Socket Buffer Size values (2^n KB) */
@@ -142,28 +142,28 @@ typedef struct eth_w5500_params
      * SPI interface used for communication with the W5500 device.
      * Must be initialized prior to driver initialization.
      */
-    yaa_spi_handle_t spi;
+    rdnx_spi_handle_t spi;
 
     /** @brief GPIO port for SPI chip select (CS). */
-    yaa_gpio_port_t cs_port;
+    rdnx_gpio_port_t cs_port;
 
     /** @brief GPIO pin for SPI chip select (CS). */
-    yaa_gpio_pin_t  cs_pin;
+    rdnx_gpio_pin_t  cs_pin;
 
     /** @brief GPIO port for hardware reset (RST). */
-    yaa_gpio_port_t rst_port;
+    rdnx_gpio_port_t rst_port;
 
     /** @brief GPIO pin for hardware reset (RST). */
-    yaa_gpio_pin_t  rst_pin;
+    rdnx_gpio_pin_t  rst_pin;
 
     /** @brief GPIO port for interrupt signal (IRQ). */
-    yaa_gpio_port_t irq_port;
+    rdnx_gpio_port_t irq_port;
 
     /** @brief GPIO pin for interrupt signal (IRQ). */
-    yaa_gpio_pin_t  irq_pin;
+    rdnx_gpio_pin_t  irq_pin;
 
     /** @brief Device MAC address (6 bytes). */
-    uint8_t mac[YAA_NET_ETH_ADDR_LEN];
+    uint8_t mac[RDNX_NET_ETH_ADDR_LEN];
 
     /** @brief Static IP address (used when DHCP is disabled). */
     uint8_t ip[4];
@@ -194,7 +194,7 @@ typedef struct eth_w5500_params
 	/**
 	 *  @brief Max buffer size for incoming data.
 	 *  If set to 0, default value will be used:
-	 *  YAA_DEFAULT_CONNECTION_BUFFER_SIZE
+	 *  RDNX_DEFAULT_CONNECTION_BUFFER_SIZE
 	 */
 	uint32_t max_buff_size;
 } eth_w5500_params_t;
@@ -221,12 +221,12 @@ typedef struct eth_w5500_ctx *eth_w5500_handle_t;
  * @param[in]  param       Pointer to W5500 configuration parameters.
  * @param[out] handle      Pointer to receive the created W5500 device handle.
  *
- * @retval YAA_ERR_OK             Initialization successful.
- * @retval YAA_ERR_BADARG         Invalid parameter.
- * @retval YAA_ERR_NOMEM          Memory allocation failed.
- * @retval YAA_ERR_FAIL           Hardware or communication error.
+ * @retval RDNX_ERR_OK             Initialization successful.
+ * @retval RDNX_ERR_BADARG         Invalid parameter.
+ * @retval RDNX_ERR_NOMEM          Memory allocation failed.
+ * @retval RDNX_ERR_FAIL           Hardware or communication error.
  */
-yaa_err_t eth_w5500_init(const eth_w5500_params_t *param,
+rdnx_err_t eth_w5500_init(const eth_w5500_params_t *param,
                           eth_w5500_handle_t *handle);
 
 /**
@@ -240,10 +240,10 @@ yaa_err_t eth_w5500_init(const eth_w5500_params_t *param,
  *                     - 0: link is down
  *                     Can be NULL if the status value is not required.
  *
- * @retval YAA_ERR_OK     Operation successful.
- * @retval YAA_ERR_BADARG Invalid handle.
+ * @retval RDNX_ERR_OK     Operation successful.
+ * @retval RDNX_ERR_BADARG Invalid handle.
  */
-yaa_err_t eth_w5500_update_link_status(eth_w5500_handle_t handle, yaa_eth_link_state_t *up);
+rdnx_err_t eth_w5500_update_link_status(eth_w5500_handle_t handle, rdnx_eth_link_state_t *up);
 
 /**
  * @brief Deinitialize and release a W5500 device instance.
@@ -253,10 +253,10 @@ yaa_err_t eth_w5500_update_link_status(eth_w5500_handle_t handle, yaa_eth_link_s
  *
  * @param[in] handle W5500 device handle.
  *
- * @retval YAA_ERR_OK          Destruction successful.
- * @retval YAA_ERR_BADARG      Invalid handle.
+ * @retval RDNX_ERR_OK          Destruction successful.
+ * @retval RDNX_ERR_BADARG      Invalid handle.
  */
-yaa_err_t eth_w5500_destroy(eth_w5500_handle_t handle);
+rdnx_err_t eth_w5500_destroy(eth_w5500_handle_t handle);
 
 /**
  * @brief Set the MAC address of the W5500 device.
@@ -267,10 +267,10 @@ yaa_err_t eth_w5500_destroy(eth_w5500_handle_t handle);
  * @param[in] handle W5500 device handle.
  * @param[in] mac    Pointer to 6-byte MAC address array.
  *
- * @retval YAA_ERR_OK      MAC address successfully configured.
- * @retval YAA_ERR_BADARG  Invalid handle or NULL pointer.
+ * @retval RDNX_ERR_OK      MAC address successfully configured.
+ * @retval RDNX_ERR_BADARG  Invalid handle or NULL pointer.
  */
-yaa_err_t eth_w5500_set_mac(eth_w5500_handle_t handle, const uint8_t mac[6]);
+rdnx_err_t eth_w5500_set_mac(eth_w5500_handle_t handle, const uint8_t mac[6]);
 
 /**
  * @brief Set the IP address of the W5500 device.
@@ -280,10 +280,10 @@ yaa_err_t eth_w5500_set_mac(eth_w5500_handle_t handle, const uint8_t mac[6]);
  * @param[in] handle W5500 device handle.
  * @param[in] ip     Pointer to 4-byte IPv4 address array.
  *
- * @retval YAA_ERR_OK      IP address successfully configured.
- * @retval YAA_ERR_BADARG  Invalid handle or NULL pointer.
+ * @retval RDNX_ERR_OK      IP address successfully configured.
+ * @retval RDNX_ERR_BADARG  Invalid handle or NULL pointer.
  */
-yaa_err_t eth_w5500_set_ip(eth_w5500_handle_t handle, const uint8_t ip[4]);
+rdnx_err_t eth_w5500_set_ip(eth_w5500_handle_t handle, const uint8_t ip[4]);
 
 /**
  * @brief Set the subnet mask of the W5500 device.
@@ -293,10 +293,10 @@ yaa_err_t eth_w5500_set_ip(eth_w5500_handle_t handle, const uint8_t ip[4]);
  * @param[in] handle W5500 device handle.
  * @param[in] subnet Pointer to 4-byte subnet mask array.
  *
- * @retval YAA_ERR_OK      Subnet mask successfully configured.
- * @retval YAA_ERR_BADARG  Invalid handle or NULL pointer.
+ * @retval RDNX_ERR_OK      Subnet mask successfully configured.
+ * @retval RDNX_ERR_BADARG  Invalid handle or NULL pointer.
  */
-yaa_err_t eth_w5500_set_subnet(eth_w5500_handle_t handle, const uint8_t subnet[4]);
+rdnx_err_t eth_w5500_set_subnet(eth_w5500_handle_t handle, const uint8_t subnet[4]);
 
 /**
  * @brief Set the gateway address of the W5500 device.
@@ -306,10 +306,10 @@ yaa_err_t eth_w5500_set_subnet(eth_w5500_handle_t handle, const uint8_t subnet[4
  * @param[in] handle  W5500 device handle.
  * @param[in] gateway Pointer to 4-byte gateway address array.
  *
- * @retval YAA_ERR_OK      Gateway address successfully configured.
- * @retval YAA_ERR_BADARG  Invalid handle or NULL pointer.
+ * @retval RDNX_ERR_OK      Gateway address successfully configured.
+ * @retval RDNX_ERR_BADARG  Invalid handle or NULL pointer.
  */
-yaa_err_t eth_w5500_set_gateway(eth_w5500_handle_t handle, const uint8_t gateway[4]);
+rdnx_err_t eth_w5500_set_gateway(eth_w5500_handle_t handle, const uint8_t gateway[4]);
 
 /**
  * @brief Get the MAC address of the W5500 device.
@@ -319,10 +319,10 @@ yaa_err_t eth_w5500_set_gateway(eth_w5500_handle_t handle, const uint8_t gateway
  * @param[in]  handle W5500 device handle.
  * @param[out] mac    Pointer to 6-byte buffer to store MAC address.
  *
- * @retval YAA_ERR_OK      MAC address successfully retrieved.
- * @retval YAA_ERR_BADARG  Invalid handle or NULL pointer.
+ * @retval RDNX_ERR_OK      MAC address successfully retrieved.
+ * @retval RDNX_ERR_BADARG  Invalid handle or NULL pointer.
  */
-yaa_err_t eth_w5500_get_mac(eth_w5500_handle_t handle, uint8_t mac[6]);
+rdnx_err_t eth_w5500_get_mac(eth_w5500_handle_t handle, uint8_t mac[6]);
 
 /**
  * @brief Get the IP address of the W5500 device.
@@ -332,10 +332,10 @@ yaa_err_t eth_w5500_get_mac(eth_w5500_handle_t handle, uint8_t mac[6]);
  * @param[in]  handle W5500 device handle.
  * @param[out] ip     Pointer to 4-byte buffer to store IPv4 address.
  *
- * @retval YAA_ERR_OK      IP address successfully retrieved.
- * @retval YAA_ERR_BADARG  Invalid handle or NULL pointer.
+ * @retval RDNX_ERR_OK      IP address successfully retrieved.
+ * @retval RDNX_ERR_BADARG  Invalid handle or NULL pointer.
  */
-yaa_err_t eth_w5500_get_ip(eth_w5500_handle_t handle, uint8_t ip[4]);
+rdnx_err_t eth_w5500_get_ip(eth_w5500_handle_t handle, uint8_t ip[4]);
 
 /**
  * @brief Get the subnet mask of the W5500 device.
@@ -345,10 +345,10 @@ yaa_err_t eth_w5500_get_ip(eth_w5500_handle_t handle, uint8_t ip[4]);
  * @param[in]  handle W5500 device handle.
  * @param[out] subnet Pointer to 4-byte buffer to store subnet mask.
  *
- * @retval YAA_ERR_OK      Subnet mask successfully retrieved.
- * @retval YAA_ERR_BADARG  Invalid handle or NULL pointer.
+ * @retval RDNX_ERR_OK      Subnet mask successfully retrieved.
+ * @retval RDNX_ERR_BADARG  Invalid handle or NULL pointer.
  */
-yaa_err_t eth_w5500_get_subnet(eth_w5500_handle_t handle, uint8_t subnet[4]);
+rdnx_err_t eth_w5500_get_subnet(eth_w5500_handle_t handle, uint8_t subnet[4]);
 
 /**
  * @brief Get the gateway address of the W5500 device.
@@ -358,10 +358,10 @@ yaa_err_t eth_w5500_get_subnet(eth_w5500_handle_t handle, uint8_t subnet[4]);
  * @param[in]  handle  W5500 device handle.
  * @param[out] gateway Pointer to 4-byte buffer to store gateway address.
  *
- * @retval YAA_ERR_OK      Gateway address successfully retrieved.
- * @retval YAA_ERR_BADARG  Invalid handle or NULL pointer.
+ * @retval RDNX_ERR_OK      Gateway address successfully retrieved.
+ * @retval RDNX_ERR_BADARG  Invalid handle or NULL pointer.
  */
-yaa_err_t eth_w5500_get_gateway(eth_w5500_handle_t handle, uint8_t gateway[4]);
+rdnx_err_t eth_w5500_get_gateway(eth_w5500_handle_t handle, uint8_t gateway[4]);
 
 
 #ifdef __cplusplus

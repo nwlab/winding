@@ -19,10 +19,10 @@
 
 /* Core includes. */
 #include <adc/ltc2946.h>
-#include <hal/yaa_i2c.h>
-#include <yaa_macro.h>
-#include <yaa_sal.h>
-#include <yaa_types.h>
+#include <hal/rdnx_i2c.h>
+#include <rdnx_macro.h>
+#include <rdnx_sal.h>
+#include <rdnx_types.h>
 
 // clang-format off
 
@@ -32,15 +32,8 @@
 
 /** @brief Debug and Error log macroses for the LTC2946 driver. */
 #ifdef DEBUG
-    #if defined(__GNUC__) || defined(__clang__)
-        // GCC/Clang: allow zero arguments safely with ##__VA_ARGS__
-        #define LTC2946_DEB(fmt, ...) printf("[LTC2946](%s:%d):"fmt "\r\n", __func__, __LINE__, ##__VA_ARGS__)
-        #define LTC2946_ERR(fmt, ...) printf("[LTC2946](ERROR):" fmt "\r\n", ##__VA_ARGS__)
-    #else
-        // Portable C99: requires at least one argument
-        #define LTC2946_DEB(fmt, ...) printf(fmt, __VA_ARGS__)
-        #define LTC2946_ERR(fmt, ...) printf(fmt, __VA_ARGS__)
-    #endif
+    #define LTC2946_DEB(fmt, ...) printf("[LTC2946](%s:%d):"fmt "\r\n", __func__, __LINE__, ##__VA_ARGS__)
+    #define LTC2946_ERR(fmt, ...) printf("[LTC2946](ERROR):" fmt "\r\n", ##__VA_ARGS__)
 #else
     #define LTC2946_DEB(fmt, ...)   ((void)0)
     #define LTC2946_ERR(fmt, ...)   ((void)0)
@@ -64,7 +57,7 @@ typedef struct ltc2946_ctx
     /**
      * @brief I2C handle for communication with the LTC2946 device.
      */
-    yaa_i2c_handle_t i2c;
+    rdnx_i2c_handle_t i2c;
 
     /**
      * @brief I2C address of the LTC2946 device.
@@ -81,53 +74,53 @@ typedef struct ltc2946_ctx
  * @param ctx Context structure for LTC2946.
  * @param adc_command Register address to write to.
  * @param code 8-bit data to write.
- * @return yaa_err_t Error code.
+ * @return rdnx_err_t Error code.
  */
-static yaa_err_t LTC2946_write(ltc2946_ctx_t *ctx, uint8_t adc_command,
-                                uint8_t code) YAA_UNUSED_FUNC;
+static rdnx_err_t LTC2946_write(ltc2946_ctx_t *ctx, uint8_t adc_command,
+                                uint8_t code) RDNX_UNUSED_FUNC;
 
 /**
  * @brief Write a 16-bit value to a specified register in the LTC2946.
  * @param ctx Context structure for LTC2946.
  * @param adc_command Register address to write to.
  * @param code 16-bit data to write.
- * @return yaa_err_t Error code.
+ * @return rdnx_err_t Error code.
  */
-static yaa_err_t LTC2946_write_16_bits(ltc2946_ctx_t *ctx,
+static rdnx_err_t LTC2946_write_16_bits(ltc2946_ctx_t *ctx,
                                         uint8_t adc_command,
-                                        uint16_t code) YAA_UNUSED_FUNC;
+                                        uint16_t code) RDNX_UNUSED_FUNC;
 
 /**
  * @brief Write a 24-bit value to a specified register in the LTC2946.
  * @param ctx Context structure for LTC2946.
  * @param adc_command Register address to write to.
  * @param code 24-bit data to write.
- * @return yaa_err_t Error code.
+ * @return rdnx_err_t Error code.
  */
-static yaa_err_t LTC2946_write_24_bits(ltc2946_ctx_t *ctx,
+static rdnx_err_t LTC2946_write_24_bits(ltc2946_ctx_t *ctx,
                                         uint8_t adc_command,
-                                        uint32_t code) YAA_UNUSED_FUNC;
+                                        uint32_t code) RDNX_UNUSED_FUNC;
 
 /**
  * @brief Write a 32-bit value to a specified register in the LTC2946.
  * @param ctx Context structure for LTC2946.
  * @param adc_command Register address to write to.
  * @param code 32-bit data to write.
- * @return yaa_err_t Error code.
+ * @return rdnx_err_t Error code.
  */
-static yaa_err_t LTC2946_write_32_bits(ltc2946_ctx_t *ctx,
+static rdnx_err_t LTC2946_write_32_bits(ltc2946_ctx_t *ctx,
                                         uint8_t adc_command,
-                                        uint32_t code) YAA_UNUSED_FUNC;
+                                        uint32_t code) RDNX_UNUSED_FUNC;
 
 /**
  * @brief Read an 8-bit value from a specified register in the LTC2946.
  * @param ctx Context structure for LTC2946.
  * @param adc_command Register address to read from.
  * @param adc_code Pointer to store the 8-bit read value.
- * @return yaa_err_t Error code.
+ * @return rdnx_err_t Error code.
  */
-static yaa_err_t LTC2946_read(ltc2946_ctx_t *ctx, uint8_t adc_command,
-                               uint8_t *adc_code) YAA_UNUSED_FUNC;
+static rdnx_err_t LTC2946_read(ltc2946_ctx_t *ctx, uint8_t adc_command,
+                               uint8_t *adc_code) RDNX_UNUSED_FUNC;
 
 /**
  * @brief Read a 12-bit value from a specified register in the LTC2946.
@@ -139,20 +132,20 @@ static yaa_err_t LTC2946_read(ltc2946_ctx_t *ctx, uint8_t adc_command,
  * @param ctx Context structure for LTC2946.
  * @param adc_command Register address to read from.
  * @param adc_code Pointer to store the 12-bit read value.
- * @return yaa_err_t Error code.
+ * @return rdnx_err_t Error code.
  */
-static yaa_err_t LTC2946_read_12_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
-                                       uint16_t *adc_code) YAA_UNUSED_FUNC;
+static rdnx_err_t LTC2946_read_12_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
+                                       uint16_t *adc_code) RDNX_UNUSED_FUNC;
 
 /**
  * @brief Read a 16-bit value from a specified register in the LTC2946.
  * @param ctx Context structure for LTC2946.
  * @param adc_command Register address to read from.
  * @param adc_code Pointer to store the 16-bit read value.
- * @return yaa_err_t Error code.
+ * @return rdnx_err_t Error code.
  */
-static yaa_err_t LTC2946_read_16_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
-                                       uint16_t *adc_code) YAA_UNUSED_FUNC;
+static rdnx_err_t LTC2946_read_16_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
+                                       uint16_t *adc_code) RDNX_UNUSED_FUNC;
 
 /**
  * @brief Read a 24-bit value from a specified register in the LTC2946.
@@ -165,10 +158,10 @@ static yaa_err_t LTC2946_read_16_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
  * @param ctx Context structure for LTC2946.
  * @param adc_command Register address to read from.
  * @param adc_code Pointer to store the 24-bit read value.
- * @return yaa_err_t Error code.
+ * @return rdnx_err_t Error code.
  */
-static yaa_err_t LTC2946_read_24_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
-                                       uint32_t *adc_code) YAA_UNUSED_FUNC;
+static rdnx_err_t LTC2946_read_24_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
+                                       uint32_t *adc_code) RDNX_UNUSED_FUNC;
 
 /**
  * @brief Read a 32-bit value from a specified register in the LTC2946.
@@ -182,10 +175,10 @@ static yaa_err_t LTC2946_read_24_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
  * @param ctx Context structure for LTC2946.
  * @param adc_command Register address to read from.
  * @param adc_code Pointer to store the 32-bit read value.
- * @return yaa_err_t Error code.
+ * @return rdnx_err_t Error code.
  */
-static yaa_err_t LTC2946_read_32_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
-                                       uint32_t *adc_code) YAA_UNUSED_FUNC;
+static rdnx_err_t LTC2946_read_32_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
+                                       uint32_t *adc_code) RDNX_UNUSED_FUNC;
 
 /* ============================================================================
  * Global Function Definitions
@@ -200,9 +193,9 @@ static yaa_err_t LTC2946_read_32_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
  *
  * @param param Pointer to the initialization parameters for the LTC2946 device.
  * @param handle Pointer to store the context (handle) of the initialized device.
- * @return yaa_err_t Error code, YAA_ERR_OK on success.
+ * @return rdnx_err_t Error code, RDNX_ERR_OK on success.
  */
-yaa_err_t ltc2946_init(const ltc2946_params_t *param,
+rdnx_err_t ltc2946_init(const ltc2946_params_t *param,
                         ltc2946_handle_t *handle)
 {
     // Validating I2C address
@@ -218,24 +211,26 @@ yaa_err_t ltc2946_init(const ltc2946_params_t *param,
           param->address == LTC2946_I2C_MASS_WRITE_7BIT))
     {
         LTC2946_ERR("LTC2946 bad address");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     // Check if device is ready
 #ifndef LTC2946_DUMMY
-    if (yaa_i2c_isready(param->i2c, param->address, 3u, 10u) != YAA_ERR_OK)
+#if defined(RDNX_CONFIG_I2C) && RDNX_CONFIG_I2C
+    if (rdnx_i2c_isready(param->i2c, param->address, 3u, 10u) != RDNX_ERR_OK)
     {
         LTC2946_ERR("LTC2946 not ready on 0x%02X", param->address);
-        return YAA_ERR_NOTFOUND;
+        return RDNX_ERR_NOTFOUND;
     }
 #endif
+#endif // LTC2946_DUMMY
 
     // Allocate memory for the context
-    ltc2946_ctx_t *ctx = (ltc2946_ctx_t *)yaa_alloc(sizeof(ltc2946_ctx_t));
+    ltc2946_ctx_t *ctx = (ltc2946_ctx_t *)rdnx_alloc(sizeof(ltc2946_ctx_t));
     if (ctx == NULL)
     {
         LTC2946_ERR("LTC2946 no memory");
-        return YAA_ERR_NOMEM;
+        return RDNX_ERR_NOMEM;
     }
 
     ctx->address = param->address;
@@ -265,7 +260,7 @@ yaa_err_t ltc2946_init(const ltc2946_params_t *param,
 
     *handle = ctx;
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /**
@@ -274,18 +269,18 @@ yaa_err_t ltc2946_init(const ltc2946_params_t *param,
  * This function frees the memory allocated for the LTC2946 context structure.
  *
  * @param handle The handle (context) of the initialized LTC2946 device.
- * @return yaa_err_t Error code, YAA_ERR_OK on success.
+ * @return rdnx_err_t Error code, RDNX_ERR_OK on success.
  */
-yaa_err_t ltc2946_destroy(ltc2946_handle_t handle)
+rdnx_err_t ltc2946_destroy(ltc2946_handle_t handle)
 {
     ltc2946_ctx_t *ctx = handle;
 
     if (ctx != NULL)
     {
-        yaa_free(ctx);
+        rdnx_free(ctx);
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /**
@@ -296,15 +291,15 @@ yaa_err_t ltc2946_destroy(ltc2946_handle_t handle)
  *
  * @param handle Handle of the initialized LTC2946 device.
  * @param values Pointer to a structure to store the read values.
- * @return yaa_err_t Error code, YAA_ERR_OK on success.
+ * @return rdnx_err_t Error code, RDNX_ERR_OK on success.
  */
-yaa_err_t ltc2946_read(ltc2946_handle_t handle, ltc2946_values_t *values)
+rdnx_err_t ltc2946_read(ltc2946_handle_t handle, ltc2946_values_t *values)
 {
     ltc2946_ctx_t *ctx = handle;
 
     if (ctx == NULL || values == NULL)
     {
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
 #ifndef LTC2946_DUMMY
@@ -342,48 +337,61 @@ yaa_err_t ltc2946_read(ltc2946_handle_t handle, ltc2946_values_t *values)
     values->charge_code = 0;
     values->time_code = 0;
 #endif
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 // Write an 8-bit code to the LTC2946.
-static yaa_err_t LTC2946_write(ltc2946_ctx_t *ctx, uint8_t adc_command,
+static rdnx_err_t LTC2946_write(ltc2946_ctx_t *ctx, uint8_t adc_command,
                                 uint8_t code)
 {
-    return yaa_i2c_write(ctx->i2c, ctx->address, adc_command,
-                          YAA_I2C_REGISTER_SIZE_8, &code, 1, 0);
+#if defined(RDNX_CONFIG_I2C) && RDNX_CONFIG_I2C
+    return rdnx_i2c_write(ctx->i2c, ctx->address, adc_command,
+                          RDNX_I2C_REGISTER_SIZE_8, &code, 1, 0);
+#else
+    return RDNX_ERR_NOTSUP;
+#endif
 }
 
 // Write a 16-bit code to the LTC2946
-static yaa_err_t LTC2946_write_16_bits(ltc2946_ctx_t *ctx,
+static rdnx_err_t LTC2946_write_16_bits(ltc2946_ctx_t *ctx,
                                         uint8_t adc_command, uint16_t code)
 {
+#if defined(RDNX_CONFIG_I2C) && RDNX_CONFIG_I2C
     uint8_t buf[2];
 
     buf[0] = (code >> 8) & 0xFF; // MSB
     buf[1] = code & 0xFF;        // LSB
 
-    return yaa_i2c_write(ctx->i2c, ctx->address, adc_command,
-                          YAA_I2C_REGISTER_SIZE_8, buf, 2, 0);
+    return rdnx_i2c_write(ctx->i2c, ctx->address, adc_command,
+                          RDNX_I2C_REGISTER_SIZE_8, buf, 2, 0);
+#else
+    return RDNX_ERR_NOTSUP;
+#endif
 }
 
 // Write a 24-bit code to the LTC2946
-static yaa_err_t LTC2946_write_24_bits(ltc2946_ctx_t *ctx,
+static rdnx_err_t LTC2946_write_24_bits(ltc2946_ctx_t *ctx,
                                         uint8_t adc_command, uint32_t code)
 {
+#if defined(RDNX_CONFIG_I2C) && RDNX_CONFIG_I2C
     uint8_t buf[3];
 
     buf[0] = (code >> 16) & 0xFF; // MSB
     buf[1] = (code >> 8) & 0xFF;  // MID
     buf[2] = code & 0xFF;         // LSB
 
-    return yaa_i2c_write(ctx->i2c, ctx->address, adc_command,
-                          YAA_I2C_REGISTER_SIZE_8, buf, 3, 0);
+    return rdnx_i2c_write(ctx->i2c, ctx->address, adc_command,
+                          RDNX_I2C_REGISTER_SIZE_8, buf, 3, 0);
+#else
+    return RDNX_ERR_NOTSUP;
+#endif
 }
 
 // Write a 32-bit code to the LTC2946
-static yaa_err_t LTC2946_write_32_bits(ltc2946_ctx_t *ctx,
+static rdnx_err_t LTC2946_write_32_bits(ltc2946_ctx_t *ctx,
                                         uint8_t adc_command, uint32_t code)
 {
+#if defined(RDNX_CONFIG_I2C) && RDNX_CONFIG_I2C
     uint8_t buf[4];
 
     buf[0] = (code >> 24) & 0xFF; // MSB
@@ -391,29 +399,37 @@ static yaa_err_t LTC2946_write_32_bits(ltc2946_ctx_t *ctx,
     buf[2] = (code >> 8) & 0xFF;
     buf[3] = code & 0xFF;         // LSB
 
-    return yaa_i2c_write(ctx->i2c, ctx->address, adc_command,
-                          YAA_I2C_REGISTER_SIZE_8, buf, 4, 0);
+    return rdnx_i2c_write(ctx->i2c, ctx->address, adc_command,
+                          RDNX_I2C_REGISTER_SIZE_8, buf, 4, 0);
+#else
+    return RDNX_ERR_NOTSUP;
+#endif
 }
 
 // Reads an 8-bit adc_code from LTC2946
-static yaa_err_t LTC2946_read(ltc2946_ctx_t *ctx, uint8_t adc_command,
+static rdnx_err_t LTC2946_read(ltc2946_ctx_t *ctx, uint8_t adc_command,
                                uint8_t *code)
 {
-    return yaa_i2c_read(ctx->i2c, ctx->address, adc_command,
-                         YAA_I2C_REGISTER_SIZE_8, code, 1, 0);
+#if defined(RDNX_CONFIG_I2C) && RDNX_CONFIG_I2C
+    return rdnx_i2c_read(ctx->i2c, ctx->address, adc_command,
+                         RDNX_I2C_REGISTER_SIZE_8, code, 1, 0);
+#else
+    return RDNX_ERR_NOTSUP;
+#endif
 }
 
 // Reads a 12-bit adc_code from LTC2946
-static yaa_err_t LTC2946_read_12_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
+static rdnx_err_t LTC2946_read_12_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
                                        uint16_t *code)
 {
-    yaa_err_t res;
+#if defined(RDNX_CONFIG_I2C) && RDNX_CONFIG_I2C
+    rdnx_err_t res;
     uint8_t buf[2];
 
     // Read 2 bytes from LTC2946
-    res = yaa_i2c_read(ctx->i2c, ctx->address, adc_command,
-                         YAA_I2C_REGISTER_SIZE_8, buf, 2, 0);
-    if (res != YAA_ERR_OK)
+    res = rdnx_i2c_read(ctx->i2c, ctx->address, adc_command,
+                         RDNX_I2C_REGISTER_SIZE_8, buf, 2, 0);
+    if (res != RDNX_ERR_OK)
     {
         return res;
     }
@@ -421,20 +437,24 @@ static yaa_err_t LTC2946_read_12_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
     // Reconstruct 12-bit ADC value: MSB[11:4], LSB[3:0]
     *code = (((uint16_t)buf[0] << 4) | (buf[1] >> 4)) & 0x0FFF;
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
+#else
+    return RDNX_ERR_NOTSUP;
+#endif
 }
 
 // Reads a 16-bit adc_code from LTC2946
-static yaa_err_t LTC2946_read_16_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
+static rdnx_err_t LTC2946_read_16_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
                                        uint16_t *code)
 {
-    yaa_err_t res;
+#if defined(RDNX_CONFIG_I2C) && RDNX_CONFIG_I2C
+    rdnx_err_t res;
     uint8_t buf[2];
 
     // Read 2 bytes from LTC2946
-    res = yaa_i2c_read(ctx->i2c, ctx->address, adc_command,
-                         YAA_I2C_REGISTER_SIZE_8, buf, 2, 0);
-    if (res != YAA_ERR_OK)
+    res = rdnx_i2c_read(ctx->i2c, ctx->address, adc_command,
+                         RDNX_I2C_REGISTER_SIZE_8, buf, 2, 0);
+    if (res != RDNX_ERR_OK)
     {
         return res;
     }
@@ -442,20 +462,24 @@ static yaa_err_t LTC2946_read_16_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
     // Combine MSB and LSB into 16-bit code
     *code = ((uint16_t)buf[0] << 8) | buf[1];
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
+#else
+    return RDNX_ERR_NOTSUP;
+#endif
 }
 
 // Reads a 24-bit adc_code from LTC2946
-static yaa_err_t LTC2946_read_24_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
+static rdnx_err_t LTC2946_read_24_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
                                        uint32_t *code)
 {
-    yaa_err_t res;
+#if defined(RDNX_CONFIG_I2C) && RDNX_CONFIG_I2C
+    rdnx_err_t res;
     uint8_t buf[3];
 
     // Read 3 bytes from LTC2946
-    res = yaa_i2c_read(ctx->i2c, ctx->address, adc_command,
-                         YAA_I2C_REGISTER_SIZE_8, buf, 3, 0);
-    if (res != YAA_ERR_OK)
+    res = rdnx_i2c_read(ctx->i2c, ctx->address, adc_command,
+                         RDNX_I2C_REGISTER_SIZE_8, buf, 3, 0);
+    if (res != RDNX_ERR_OK)
     {
         return res;
     }
@@ -463,21 +487,27 @@ static yaa_err_t LTC2946_read_24_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
     // Combine bytes into 24-bit value
     *code = ((uint32_t)buf[0] << 16) | ((uint32_t)buf[1] << 8) | buf[2];
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
+#else
+    return RDNX_ERR_NOTSUP;
+#endif
 }
 
 // Reads a 32-bit adc_code from LTC2946
-static yaa_err_t LTC2946_read_32_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
+static rdnx_err_t LTC2946_read_32_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
                                        uint32_t *code)
 {
-    yaa_err_t res;
+#if defined(RDNX_CONFIG_I2C) && RDNX_CONFIG_I2C
+    rdnx_err_t res;
     uint8_t buf[4];
 
     // Read 4 bytes from LTC2946
-    res = yaa_i2c_read(ctx->i2c, ctx->address, adc_command,
-                         YAA_I2C_REGISTER_SIZE_8, buf, 4, 0);
-    if (res != YAA_ERR_OK)
+    res = rdnx_i2c_read(ctx->i2c, ctx->address, adc_command,
+                         RDNX_I2C_REGISTER_SIZE_8, buf, 4, 0);
+    if (res != RDNX_ERR_OK)
+    {
         return res;
+    }
 
     // Combine bytes into 32-bit value (MSB first)
     *code = ((uint32_t)buf[0] << 24) |
@@ -485,7 +515,10 @@ static yaa_err_t LTC2946_read_32_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
             ((uint32_t)buf[2] << 8)  |
             buf[3];
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
+#else
+    return RDNX_ERR_NOTSUP;
+#endif
 }
 
 void ltc2946_print(const ltc2946_values_t *v)
@@ -522,6 +555,44 @@ void ltc2946_print(const ltc2946_values_t *v)
     printf("    energy  : %lu\n\r", (unsigned long)v->energy_code);
     printf("    charge  : %lu\n\r", (unsigned long)v->charge_code);
     printf("    time    : %lu\n\r", (unsigned long)v->time_code);
+}
+
+/* Conversion functions */
+float ltc2946_current_to_amps(uint16_t code, float shunt_ohm)
+{
+    return ((float)code * LTC2946_DELTA_SENSE_lsb) / shunt_ohm;
+}
+
+float ltc2946_vin_to_volts(uint16_t code)
+{
+    return ((float)code * LTC2946_VIN_lsb);
+}
+
+float ltc2946_adin_to_volts(uint16_t code)
+{
+    return ((float)code * LTC2946_ADIN_lsb);
+}
+
+float ltc2946_power_to_watts(uint32_t code, float shunt_ohm)
+{
+    return ((float)code * LTC2946_Power_lsb) / shunt_ohm;
+}
+
+float ltc2946_charge_to_coulombs(uint32_t code, float shunt_ohm)
+{
+    float lsb = (LTC2946_DELTA_SENSE_lsb / shunt_ohm) * 16.0f * LTC2946_TIME_lsb;
+    return ((float)code * lsb);
+}
+
+float ltc2946_energy_to_joules(uint32_t code, float shunt_ohm)
+{
+    float lsb = (LTC2946_Power_lsb / shunt_ohm) * 65536.0f * LTC2946_TIME_lsb;
+    return ((float)code * lsb);
+}
+
+float ltc2946_time_to_seconds(uint32_t code)
+{
+    return ((float)code * LTC2946_TIME_lsb);
 }
 
 // clang-format on

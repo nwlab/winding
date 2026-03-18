@@ -11,12 +11,12 @@
 #include <stdint.h>
 
 /* Core includes. */
-#include <hal/yaa_i2c.h>
+#include <hal/rdnx_i2c.h>
 #include <onewire/ds2482.h>
 #include <onewire/one_wire.h>
-#include <yaa_macro.h>
-#include <yaa_sal.h>
-#include <yaa_types.h>
+#include <rdnx_macro.h>
+#include <rdnx_sal.h>
+#include <rdnx_types.h>
 
 // clang-format off
 
@@ -64,17 +64,17 @@
  * Global Function Definitions
  * ==========================================================================*/
 
-yaa_err_t ds2430_writeMemory(ds2482_handle_t handle, const uint8_t *source, uint8_t length, uint8_t position)
+rdnx_err_t ds2430_writeMemory(ds2482_handle_t handle, const uint8_t *source, uint8_t length, uint8_t position)
 {
     /* Assume we have single device on the bus. */
-    yaa_err_t status = ds2482_1w_send_command_all(handle, W1_F14_WRITE_SCRATCH);
-    if (status != YAA_ERR_OK)
+    rdnx_err_t status = ds2482_1w_send_command_all(handle, W1_F14_WRITE_SCRATCH);
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
 
     status = ds2482_1w_write_byte(handle, position); // Starting address.
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
@@ -83,7 +83,7 @@ yaa_err_t ds2430_writeMemory(ds2482_handle_t handle, const uint8_t *source, uint
     for (int i = 0; i < length; i++)
     {
         status = ds2482_1w_write_byte(handle, source[i]);
-        if (status != YAA_ERR_OK)
+        if (status != RDNX_ERR_OK)
         {
             return status;
         }
@@ -92,38 +92,38 @@ yaa_err_t ds2430_writeMemory(ds2482_handle_t handle, const uint8_t *source, uint
     /* Commit data (DS2430a will transfer data from internal memory to eeprom).
        Assume we have single device on the bus. */
     status = ds2482_1w_send_command_all(handle, W1_F14_COPY_SCRATCH);
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
 
     // Validation key.
     status = ds2482_1w_write_byte(handle, W1_F14_VALIDATION_KEY);
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
 
     /* Sleep for tprog ms to wait for the write to complete */
-    yaa_mdelay(W1_F14_TPROG_MS);
+    rdnx_mdelay(W1_F14_TPROG_MS);
 
     /* Reset the bus to wake up the EEPROM  */
     ow_reset(handle);
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
-yaa_err_t ds2430_readMemory(ds2482_handle_t handle, uint8_t *destination, uint16_t length, uint16_t position)
+rdnx_err_t ds2430_readMemory(ds2482_handle_t handle, uint8_t *destination, uint16_t length, uint16_t position)
 {
     /* Assume we have single device on the bus. */
-    yaa_err_t status = ds2482_1w_send_command_all(handle, W1_F14_READ_EEPROM);
-    if (status != YAA_ERR_OK)
+    rdnx_err_t status = ds2482_1w_send_command_all(handle, W1_F14_READ_EEPROM);
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
 
     status = ds2482_1w_write_byte(handle, position); // Starting address.
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
@@ -133,5 +133,5 @@ yaa_err_t ds2430_readMemory(ds2482_handle_t handle, uint8_t *destination, uint16
         destination[i] = ow_read_byte(handle);
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }

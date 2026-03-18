@@ -22,3 +22,9 @@
 [submodule "contrib/StepperHAL_STM32F4x1-Library"]
 	path = contrib/StepperHAL_STM32F4x1-Library
 	url = https://github.com/ennio64/StepperHAL_STM32F4x1-Library.git
+[submodule "contrib/CNCMachine"]
+	path = contrib/CNCMachine
+	url = https://github.com/Nikolay-Kha/CNCMachine.git
+[submodule "contrib/Enhanced-CNC-Controller"]
+	path = contrib/Enhanced-CNC-Controller
+	url = https://github.com/anarchih/Enhanced-CNC-Controller.git

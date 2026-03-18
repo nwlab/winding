@@ -27,10 +27,10 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <yaa_types.h>
-#include <yaa_macro.h>
-#include <hal/yaa_spi.h>
-#include <hal/yaa_gpio.h>
+#include <rdnx_types.h>
+#include <rdnx_macro.h>
+#include <hal/rdnx_spi.h>
+#include <hal/rdnx_gpio.h>
 
 /* ============================================================================
  * Configuration
@@ -404,15 +404,15 @@ The state of the interrupt bit in the interrupt status register is reset to its 
  */
 typedef struct
 {
-    yaa_spi_handle_t spi;        /**< SPI peripheral handle */
-    yaa_gpio_port_t cs_port;     /**< GPIO port for chip select */
-    yaa_gpio_pin_t  cs_pin;      /**< GPIO pin for chip select */
-    yaa_gpio_port_t irq_port;     /**< GPIO port for IRQ */
-    yaa_gpio_pin_t  irq_pin;      /**< GPIO pin for IRQ */
+    rdnx_spi_handle_t spi;        /**< SPI peripheral handle */
+    rdnx_gpio_port_t cs_port;     /**< GPIO port for chip select */
+    rdnx_gpio_pin_t  cs_pin;      /**< GPIO pin for chip select */
+    rdnx_gpio_port_t irq_port;     /**< GPIO port for IRQ */
+    rdnx_gpio_pin_t  irq_pin;      /**< GPIO pin for IRQ */
 
     /* Function pointers for user-defined lock/unlock mechanisms */
-    yaa_err_t (*lock)(void);     /**< User-defined lock function */
-    yaa_err_t (*unlock)(void);   /**< User-defined unlock function */
+    rdnx_err_t (*lock)(void);     /**< User-defined lock function */
+    rdnx_err_t (*unlock)(void);   /**< User-defined unlock function */
 } ade7758_params_t;
 
 /**
@@ -465,7 +465,7 @@ typedef struct ade7758_values
 
 } ade7758_values_t;
 
-YAA_STATIC_ASSERT(sizeof(ade7758_values_t) == 64);
+static_assert(sizeof(ade7758_values_t) == 64, "Bad size of ade7758_values_t");
 
 /* ============================================================================
  * Public Variable Declarations
@@ -490,12 +490,12 @@ static const float ADE7758_energy_lsb = 0.0001f;  // Energy LSB scaling factor (
  * @param[in]  param   Initialization parameters
  * @param[out] handle  Pointer to receive device handle
  *
- * @return yaa_err_t
- * @retval YAA_ERR_OK       Initialization successful
- * @retval YAA_ERR_BADARG   Invalid arguments
- * @retval YAA_ERR_NOMEM    Memory allocation failed
+ * @return rdnx_err_t
+ * @retval RDNX_ERR_OK       Initialization successful
+ * @retval RDNX_ERR_BADARG   Invalid arguments
+ * @retval RDNX_ERR_NOMEM    Memory allocation failed
  */
-yaa_err_t ade7758_init(const ade7758_params_t *param,
+rdnx_err_t ade7758_init(const ade7758_params_t *param,
                         ade7758_handle_t *handle);
 
 /**
@@ -505,9 +505,9 @@ yaa_err_t ade7758_init(const ade7758_params_t *param,
  *
  * @param handle Device handle
  *
- * @return yaa_err_t
+ * @return rdnx_err_t
  */
-yaa_err_t ade7758_destroy(ade7758_handle_t handle);
+rdnx_err_t ade7758_destroy(ade7758_handle_t handle);
 
 /**
  * @brief Read ADE7758 register(s)
@@ -517,9 +517,9 @@ yaa_err_t ade7758_destroy(ade7758_handle_t handle);
  * @param data Buffer to store read data
  * @param length Number of bytes to read
  *
- * @return yaa_err_t
+ * @return rdnx_err_t
  */
-yaa_err_t ade7758_read_reg(ade7758_handle_t handle,
+rdnx_err_t ade7758_read_reg(ade7758_handle_t handle,
                             ade7758_reg_t reg,
                             uint8_t *data,
                             uint16_t length);
@@ -532,9 +532,9 @@ yaa_err_t ade7758_read_reg(ade7758_handle_t handle,
  * @param data Buffer containing data to write
  * @param length Number of bytes to write
  *
- * @return yaa_err_t
+ * @return rdnx_err_t
  */
-yaa_err_t ade7758_write_reg(ade7758_handle_t handle,
+rdnx_err_t ade7758_write_reg(ade7758_handle_t handle,
                              ade7758_reg_t reg,
                              const uint8_t *data,
                              uint16_t length);
@@ -545,9 +545,9 @@ yaa_err_t ade7758_write_reg(ade7758_handle_t handle,
  * @param handle Device handle
  * @param value Pointer to store 16-bit signed energy value
  *
- * @return yaa_err_t
+ * @return rdnx_err_t
  */
-yaa_err_t ade7758_read_active_energy(ade7758_handle_t handle,
+rdnx_err_t ade7758_read_active_energy(ade7758_handle_t handle,
                                       int32_t *value);
 
 /**
@@ -556,9 +556,9 @@ yaa_err_t ade7758_read_active_energy(ade7758_handle_t handle,
  * @param handle Device handle
  * @param version Pointer to store revision value
  *
- * @return yaa_err_t
+ * @return rdnx_err_t
  */
-yaa_err_t ade7758_get_version(ade7758_handle_t handle,
+rdnx_err_t ade7758_get_version(ade7758_handle_t handle,
                                uint8_t *version);
 
 /**
@@ -572,9 +572,9 @@ yaa_err_t ade7758_get_version(ade7758_handle_t handle,
  * @param handle  ADE7758 device handle
  * @param values  Pointer to measurement structure
  *
- * @return yaa_err_t
+ * @return rdnx_err_t
  */
-yaa_err_t ade7758_read_all(ade7758_handle_t handle,
+rdnx_err_t ade7758_read_all(ade7758_handle_t handle,
                             ade7758_values_t *values);
 
 /**
@@ -583,9 +583,9 @@ yaa_err_t ade7758_read_all(ade7758_handle_t handle,
  * @param handle Device handle
  * @param temperature
  *
- * @return yaa_err_t
+ * @return rdnx_err_t
  */
-yaa_err_t ade7758_get_temperature(ade7758_handle_t handle,
+rdnx_err_t ade7758_get_temperature(ade7758_handle_t handle,
                                    uint16_t *temperature);
 
 /**
@@ -643,7 +643,7 @@ float ade7758_code_to_frequency(uint16_t code);
  */
 float ade7758_code_to_temperature(int16_t code);
 
-yaa_err_t ade7758_stop_device(ade7758_handle_t handle);
+rdnx_err_t ade7758_stop_device(ade7758_handle_t handle);
 
 void ade7758_print(const ade7758_values_t *v, float vref_mv, float divider, float shunt_ohm, float energy_lsb);
 

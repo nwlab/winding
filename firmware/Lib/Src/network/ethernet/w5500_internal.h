@@ -29,11 +29,11 @@
 #include <stdio.h>
 
 /* Core includes. */
-#include <yaa_macro.h>
-#include <yaa_types.h>
+#include <rdnx_macro.h>
+#include <rdnx_types.h>
 
 #include <network/ethernet/w5500.h>
-#include <network/yaa_socket.h>
+#include <network/rdnx_socket.h>
 
 /* ============================================================================
  * Private Macro Definitions
@@ -105,7 +105,7 @@ typedef struct eth_w5500_ctx
      * SPI interface used for communication with the W5500 controller.
      * Must be initialized before the W5500 driver is started.
      */
-    yaa_spi_handle_t spi;
+    rdnx_spi_handle_t spi;
 
     /**
      * @brief Chip Select (CS) GPIO handle.
@@ -113,7 +113,7 @@ typedef struct eth_w5500_ctx
      * Controls the SPI chip select line of the W5500.
      * Must be driven low during SPI transactions.
      */
-    yaa_gpio_handle_t gpio_cs;
+    rdnx_gpio_handle_t gpio_cs;
 
     /**
      * @brief Reset (RST) GPIO handle.
@@ -122,7 +122,7 @@ typedef struct eth_w5500_ctx
      * If not required, this pin may be left unconnected and ignored
      * by the driver.
      */
-    yaa_gpio_handle_t gpio_reset;
+    rdnx_gpio_handle_t gpio_reset;
 
     /**
      * @brief Interrupt (IRQ) GPIO handle.
@@ -130,12 +130,12 @@ typedef struct eth_w5500_ctx
      * Optional interrupt line from the W5500 for event notification
      * (socket events, link status changes, etc.).
      */
-    yaa_gpio_handle_t gpio_int;
+    rdnx_gpio_handle_t gpio_int;
 
     /**
      * @brief Source Mac Address
      */
-    uint8_t mac_addr[YAA_NET_ETH_ADDR_LEN];
+    uint8_t mac_addr[RDNX_NET_ETH_ADDR_LEN];
 
     /**
      * @brief TCP retransmission timeout (RTR register)
@@ -182,55 +182,55 @@ typedef struct eth_w5500_ctx
  *  @{
  */
 
-yaa_err_t w5500_reg_write(eth_w5500_ctx_t *ctx, uint8_t block, uint16_t addr, const uint8_t *data, uint16_t len);
-yaa_err_t w5500_reg_read(eth_w5500_ctx_t *ctx, uint8_t block, uint16_t addr, uint8_t *data, uint16_t len);
-yaa_err_t w5500_read_16bit_reg(eth_w5500_ctx_t *dev, uint8_t block, uint16_t addr, uint16_t *value);
+rdnx_err_t w5500_reg_write(eth_w5500_ctx_t *ctx, uint8_t block, uint16_t addr, const uint8_t *data, uint16_t len);
+rdnx_err_t w5500_reg_read(eth_w5500_ctx_t *ctx, uint8_t block, uint16_t addr, uint8_t *data, uint16_t len);
+rdnx_err_t w5500_read_16bit_reg(eth_w5500_ctx_t *dev, uint8_t block, uint16_t addr, uint16_t *value);
 void w5500_sockets_init(eth_w5500_ctx_t *ctx);
-yaa_err_t w5500_setup(eth_w5500_ctx_t *ctx);
-yaa_err_t w5500_reset(eth_w5500_ctx_t *ctx);
-yaa_err_t w5500_check_link_status(eth_w5500_ctx_t *dev);
-yaa_err_t w5500_tcp_config(eth_w5500_ctx_t *dev, uint16_t retry_time, uint8_t retry_count);
-yaa_err_t w5500_set_mac(eth_w5500_ctx_t *ctx, const uint8_t mac[6]);
-yaa_err_t w5500_set_ip(eth_w5500_ctx_t *ctx, const uint8_t ip[4]);
-yaa_err_t w5500_set_subnet(eth_w5500_ctx_t *ctx, const uint8_t subnet[4]);
-yaa_err_t w5500_set_gateway(eth_w5500_ctx_t *ctx, const uint8_t gateway[4]);
-yaa_err_t w5500_get_mac(eth_w5500_ctx_t *ctx, uint8_t mac[6]);
-yaa_err_t w5500_get_ip(eth_w5500_ctx_t *ctx, uint8_t ip[4]);
-yaa_err_t w5500_get_subnet(eth_w5500_ctx_t *ctx, uint8_t subnet[4]);
-yaa_err_t w5500_get_gateway(eth_w5500_ctx_t *ctx, uint8_t gateway[4]);
-yaa_err_t w5500_socket_reg_write(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t reg_offset,
+rdnx_err_t w5500_setup(eth_w5500_ctx_t *ctx);
+rdnx_err_t w5500_reset(eth_w5500_ctx_t *ctx);
+rdnx_err_t w5500_check_link_status(eth_w5500_ctx_t *dev);
+rdnx_err_t w5500_tcp_config(eth_w5500_ctx_t *dev, uint16_t retry_time, uint8_t retry_count);
+rdnx_err_t w5500_set_mac(eth_w5500_ctx_t *ctx, const uint8_t mac[6]);
+rdnx_err_t w5500_set_ip(eth_w5500_ctx_t *ctx, const uint8_t ip[4]);
+rdnx_err_t w5500_set_subnet(eth_w5500_ctx_t *ctx, const uint8_t subnet[4]);
+rdnx_err_t w5500_set_gateway(eth_w5500_ctx_t *ctx, const uint8_t gateway[4]);
+rdnx_err_t w5500_get_mac(eth_w5500_ctx_t *ctx, uint8_t mac[6]);
+rdnx_err_t w5500_get_ip(eth_w5500_ctx_t *ctx, uint8_t ip[4]);
+rdnx_err_t w5500_get_subnet(eth_w5500_ctx_t *ctx, uint8_t subnet[4]);
+rdnx_err_t w5500_get_gateway(eth_w5500_ctx_t *ctx, uint8_t gateway[4]);
+rdnx_err_t w5500_socket_reg_write(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t reg_offset,
                                   const uint8_t *data, uint16_t len);
-yaa_err_t w5500_socket_reg_read(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t reg_offset, uint8_t *data,
+rdnx_err_t w5500_socket_reg_read(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t reg_offset, uint8_t *data,
                                  uint16_t len);
-yaa_err_t w5500_socket_read_status(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t *status);
-yaa_err_t w5500_socket_command_write(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t val);
-yaa_err_t w5500_socket_config_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t mask);
+rdnx_err_t w5500_socket_read_status(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t *status);
+rdnx_err_t w5500_socket_command_write(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t val);
+rdnx_err_t w5500_socket_config_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t mask);
 uint8_t w5500_socket_get_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id);
-yaa_err_t w5500_socket_clear_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t flags);
-yaa_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id);
-yaa_err_t w5500_socket_open(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t protocol, uint8_t buff_size);
-yaa_err_t w5500_socket_close(eth_w5500_ctx_t *dev, uint8_t sock_id);
-yaa_err_t w5500_socket_connect(eth_w5500_ctx_t *dev, uint8_t sock_id, struct w5500_socket_address *addr);
-yaa_err_t w5500_socket_disconnect(eth_w5500_ctx_t *dev, uint8_t sock_id);
-yaa_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *buf, uint16_t len);
-yaa_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, uint16_t len, uint16_t *received);
-yaa_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *buf, uint16_t len,
+rdnx_err_t w5500_socket_clear_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t flags);
+rdnx_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id);
+rdnx_err_t w5500_socket_open(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t protocol, uint8_t buff_size);
+rdnx_err_t w5500_socket_close(eth_w5500_ctx_t *dev, uint8_t sock_id);
+rdnx_err_t w5500_socket_connect(eth_w5500_ctx_t *dev, uint8_t sock_id, struct w5500_socket_address *addr);
+rdnx_err_t w5500_socket_disconnect(eth_w5500_ctx_t *dev, uint8_t sock_id);
+rdnx_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *buf, uint16_t len);
+rdnx_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, uint16_t len, uint16_t *received);
+rdnx_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *buf, uint16_t len,
                             struct w5500_socket_address *to);
-yaa_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, uint16_t len,
+rdnx_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, uint16_t len,
                                  struct w5500_socket_address *from, uint16_t *received);
-yaa_err_t w5500_socket_bind(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t port);
-yaa_err_t w5500_socket_listen(eth_w5500_ctx_t *dev, uint8_t sock_id);
+rdnx_err_t w5500_socket_bind(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t port);
+rdnx_err_t w5500_socket_listen(eth_w5500_ctx_t *dev, uint8_t sock_id);
 uint8_t w5500_socket_translate_protocol(uint32_t proto);
 bool w5500_socket_is_open(uint8_t protocol, uint8_t status);
-yaa_err_t w5500_net_find_free_socket(eth_w5500_ctx_t *dev, uint8_t *sock_id);
-yaa_err_t w5500_net_addr_net_to_w5500(const yaa_sockaddr_t *src, struct w5500_socket_address *dst);
-yaa_err_t w5500_net_addr_w5500_to_net(struct w5500_socket_address *src, yaa_sockaddr_t *dst);
+rdnx_err_t w5500_net_find_free_socket(eth_w5500_ctx_t *dev, uint8_t *sock_id);
+rdnx_err_t w5500_net_addr_net_to_w5500(const rdnx_sockaddr_t *src, struct w5500_socket_address *dst);
+rdnx_err_t w5500_net_addr_w5500_to_net(struct w5500_socket_address *src, rdnx_sockaddr_t *dst);
 
-yaa_err_t w5500_global_irq_config(eth_w5500_ctx_t *dev, uint8_t imr);
-yaa_err_t w5500_global_irq_clear(eth_w5500_ctx_t *dev, uint8_t imr);
+rdnx_err_t w5500_global_irq_config(eth_w5500_ctx_t *dev, uint8_t imr);
+rdnx_err_t w5500_global_irq_clear(eth_w5500_ctx_t *dev, uint8_t imr);
 uint8_t w5500_global_irq_get(eth_w5500_ctx_t *dev);
-yaa_err_t w5500_socket_irq_config(eth_w5500_ctx_t *dev, uint8_t mask);
-yaa_err_t w5500_socket_irq_clear(eth_w5500_ctx_t *dev, uint8_t mask);
+rdnx_err_t w5500_socket_irq_config(eth_w5500_ctx_t *dev, uint8_t mask);
+rdnx_err_t w5500_socket_irq_clear(eth_w5500_ctx_t *dev, uint8_t mask);
 uint8_t w5500_socket_irq_get(eth_w5500_ctx_t *dev);
 
 void w5500_dump_reg(eth_w5500_ctx_t *ctx);

@@ -1,4 +1,4 @@
-target_sources(yaa_stm32 INTERFACE
-               yaa_temperature.c
-               temperature/yaa_stm32_temp.c
+target_sources(rdnx_stm32 INTERFACE
+               rdnx_temperature.c
+               temperature/rdnx_stm32_temp.c
 )

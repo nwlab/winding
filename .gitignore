@@ -63,3 +63,6 @@ dkms.conf
 # Build
 build
 firmware/compile_commands.json
+
+# Proprietary code
+firmware/Middlewares/Third_Party/WL

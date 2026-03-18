@@ -11,8 +11,8 @@
  * are intended for use by higher-level NVRAM management modules.
  */
 
-#ifndef YAA_NVRAM_ENTRY_H
-#define YAA_NVRAM_ENTRY_H
+#ifndef RDNX_NVRAM_ENTRY_H
+#define RDNX_NVRAM_ENTRY_H
 
 /* ============================================================================
  * Include Files
@@ -22,8 +22,8 @@
 #include <stdint.h>
 
 /* Core includes */
-#include <yaa_nvram.h>
-#include "yaa_nvram_internal.h"
+#include <rdnx_nvram.h>
+#include "rdnx_nvram_internal.h"
 
 /* ============================================================================
  * Public Function Prototypes
@@ -40,14 +40,14 @@
  * @param[out] value   Pointer to variable that receives the entry value
  *
  * @return
- * - ::YAA_ERR_OK        Entry successfully read
- * - ::YAA_ERR_BADARG    One or more arguments are invalid
- * - ::YAA_ERR_IO        Underlying storage access error
+ * - ::RDNX_ERR_OK        Entry successfully read
+ * - ::RDNX_ERR_BADARG    One or more arguments are invalid
+ * - ::RDNX_ERR_IO        Underlying storage access error
  */
-yaa_err_t yaa_nvram_read_entry(struct yaa_nvram_ctx *ctx,
-                                 yaa_nvram_offset_t offset,
-                                 yaa_nvram_key_t *key,
-                                 yaa_nvram_value_t *value);
+rdnx_err_t rdnx_nvram_read_entry(struct rdnx_nvram_ctx *ctx,
+                                 rdnx_nvram_offset_t offset,
+                                 rdnx_nvram_key_t *key,
+                                 rdnx_nvram_value_t *value);
 
 /**
  * @brief Write a single key–value entry to NVRAM.
@@ -60,14 +60,14 @@ yaa_err_t yaa_nvram_read_entry(struct yaa_nvram_ctx *ctx,
  * @param[in] value   Value associated with the key
  *
  * @return
- * - ::YAA_ERR_OK        Entry successfully written
- * - ::YAA_ERR_BADARG    One or more arguments are invalid
- * - ::YAA_ERR_IO        Underlying storage access error
+ * - ::RDNX_ERR_OK        Entry successfully written
+ * - ::RDNX_ERR_BADARG    One or more arguments are invalid
+ * - ::RDNX_ERR_IO        Underlying storage access error
  */
-yaa_err_t yaa_nvram_write_entry(struct yaa_nvram_ctx *ctx,
-                                  yaa_nvram_offset_t offset,
-                                  yaa_nvram_key_t key,
-                                  yaa_nvram_value_t value);
+rdnx_err_t rdnx_nvram_write_entry(struct rdnx_nvram_ctx *ctx,
+                                  rdnx_nvram_offset_t offset,
+                                  rdnx_nvram_key_t key,
+                                  rdnx_nvram_value_t value);
 
 /**
  * @brief Check whether a memory block is fully erased.
@@ -81,7 +81,7 @@ yaa_err_t yaa_nvram_write_entry(struct yaa_nvram_ctx *ctx,
  * @retval 1  Memory block is fully erased
  * @retval 0  Memory block contains programmed data
  */
-uint8_t yaa_nvram_is_block_erased(const uint8_t *data,
-                                   yaa_nvram_offset_t size);
+uint8_t rdnx_nvram_is_block_erased(const uint8_t *data,
+                                   rdnx_nvram_offset_t size);
 
-#endif /* YAA_NVRAM_ENTRY_H */
+#endif /* RDNX_NVRAM_ENTRY_H */

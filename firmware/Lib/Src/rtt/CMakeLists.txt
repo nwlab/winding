@@ -1,4 +1,4 @@
-target_sources(yaa_stm32 INTERFACE
-               yaa_rtt.c
+target_sources(rdnx_stm32 INTERFACE
+               rdnx_rtt.c
                SEGGER_RTT.c
 )

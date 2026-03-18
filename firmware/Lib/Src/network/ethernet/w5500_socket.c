@@ -12,7 +12,7 @@
  *  - TCP server functions: bind and listen
  *
  * Each logical socket maps to a W5500 hardware socket (0–7).
- * Functions handle translation between generic yaa socket API
+ * Functions handle translation between generic rdnx socket API
  * and W5500-specific registers and commands.
  *
  * @note The W5500 supports up to 8 hardware sockets. Attempting
@@ -32,14 +32,14 @@
 #include <string.h> // for memcpy
 
 /* Core includes. */
-#include <hal/yaa_gpio.h>
-#include <hal/yaa_spi.h>
-#include <yaa_macro.h>
-#include <yaa_sal.h>
-#include <yaa_types.h>
+#include <hal/rdnx_gpio.h>
+#include <hal/rdnx_spi.h>
+#include <rdnx_macro.h>
+#include <rdnx_sal.h>
+#include <rdnx_types.h>
 
 #include <network/ethernet/w5500.h>
-#include <network/yaa_socket.h>
+#include <network/rdnx_socket.h>
 #include "w5500_internal.h"
 
 /******************************************************************************
@@ -53,13 +53,13 @@
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_reg_write(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t reg_offset,
+rdnx_err_t w5500_socket_reg_write(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t reg_offset,
                                          const uint8_t *data, uint16_t len)
 {
     if (sock_id > W5500_MAX_SOCK_NUMBER)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     return w5500_reg_write(dev, W5500_SOCKET_REG_BLOCK(sock_id), reg_offset, data, len);
@@ -76,13 +76,13 @@ yaa_err_t w5500_socket_reg_write(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_reg_read(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t reg_offset, uint8_t *data,
+rdnx_err_t w5500_socket_reg_read(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t reg_offset, uint8_t *data,
                                         uint16_t len)
 {
     if (sock_id > W5500_MAX_SOCK_NUMBER)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     return w5500_reg_read(dev, W5500_SOCKET_REG_BLOCK(sock_id), reg_offset, data, len);
@@ -97,7 +97,7 @@ yaa_err_t w5500_socket_reg_read(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t 
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_read_status(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t *status)
+rdnx_err_t w5500_socket_read_status(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t *status)
 {
     return w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, status, 1);
 }
@@ -111,7 +111,7 @@ yaa_err_t w5500_socket_read_status(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_command_write(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t val)
+rdnx_err_t w5500_socket_command_write(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t val)
 {
     return w5500_socket_reg_write(dev, sock_id, W5500_Sn_CR, &val, 1);
 }
@@ -135,7 +135,7 @@ yaa_err_t w5500_socket_command_write(eth_w5500_ctx_t *dev, uint8_t sock_id, uint
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_config_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t mask)
+rdnx_err_t w5500_socket_config_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t mask)
 {
     return w5500_socket_reg_write(dev, sock_id, W5500_Sn_IMR, &mask, 1);
 }
@@ -164,7 +164,7 @@ uint8_t w5500_socket_get_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id)
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_clear_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t flags)
+rdnx_err_t w5500_socket_clear_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t flags)
 {
     return w5500_socket_reg_write(dev, sock_id, W5500_Sn_IR, &flags, 1);
 }
@@ -177,9 +177,9 @@ yaa_err_t w5500_socket_clear_interrupt(eth_w5500_ctx_t *dev, uint8_t sock_id, ui
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id)
+rdnx_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint8_t mss_buf[2];
     uint8_t port_buf[2];
     struct w5500_socket *sock = &dev->sockets[sock_id];
@@ -190,11 +190,11 @@ yaa_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id)
     if (sock_id > W5500_MAX_SOCK_NUMBER)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_MR, &sock->protocol, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
@@ -203,7 +203,7 @@ yaa_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id)
     if (sock->protocol == W5500_Sn_MR_TCP)
     {
         ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_MSSR, mss_buf, 2);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             W5500_ERR("Fail to write reg %d", ret);
             return ret;
@@ -211,14 +211,14 @@ yaa_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id)
     }
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_RXBUF_SIZE, &sock->rx_buf_size, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
     }
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_TXBUF_SIZE, &sock->tx_buf_size, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
@@ -232,16 +232,16 @@ yaa_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id)
     }
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_PORT, port_buf, 2);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
     }
 
-    yaa_mdelay(10);   // VERY IMPORTANT
+    rdnx_mdelay(10);   // VERY IMPORTANT
 
     ret = w5500_socket_command_write(dev, sock_id, W5500_Sn_CR_OPEN);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write command %d", ret);
         return ret;
@@ -259,7 +259,7 @@ yaa_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id)
             opened = true;
             break;
         }
-        yaa_mdelay(1);
+        rdnx_mdelay(1);
     }
 
 #if 0
@@ -272,7 +272,7 @@ yaa_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id)
               status,
               timeout);
 
-    return (opened ? YAA_ERR_OK : YAA_ERR_FAIL);
+    return (opened ? RDNX_ERR_OK : RDNX_ERR_FAIL);
 }
 
 /******************************************************************************
@@ -285,24 +285,24 @@ yaa_err_t w5500_socket_init(eth_w5500_ctx_t *dev, uint8_t sock_id)
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_open(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t protocol, uint8_t buff_size)
+rdnx_err_t w5500_socket_open(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t protocol, uint8_t buff_size)
 {
-    YAA_UNUSED(buff_size);
+    RDNX_UNUSED(buff_size);
     struct w5500_socket *sock;
-    yaa_err_t ret;
+    rdnx_err_t ret;
 
     if (protocol == W5500_Sn_MR_MACRAW)
     {
         if (sock_id != 0)
         {
             W5500_ERR("Bad arguments");
-            return YAA_ERR_BADARG;
+            return RDNX_ERR_BADARG;
         }
     }
     else if (protocol != W5500_Sn_MR_UDP && protocol != W5500_Sn_MR_TCP)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     sock = &dev->sockets[sock_id];
@@ -312,14 +312,14 @@ yaa_err_t w5500_socket_open(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t proto
     sock->rx_buf_size = 2; // buff_size
 
     ret = w5500_socket_init(dev, sock_id);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to init socket %d", (int)ret);
         sock->protocol = W5500_Sn_MR_CLOSE;
         return ret;
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -330,24 +330,24 @@ yaa_err_t w5500_socket_open(eth_w5500_ctx_t *dev, uint8_t sock_id, uint8_t proto
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_close(eth_w5500_ctx_t *dev, uint8_t sock_id)
+rdnx_err_t w5500_socket_close(eth_w5500_ctx_t *dev, uint8_t sock_id)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
 
     if (sock_id > W5500_MAX_SOCK_NUMBER)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_command_write(dev, sock_id, W5500_Sn_CR_CLOSE);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to close socket %d", (int)ret);
         return ret;
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -359,7 +359,7 @@ yaa_err_t w5500_socket_close(eth_w5500_ctx_t *dev, uint8_t sock_id)
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_connect(eth_w5500_ctx_t *dev, uint8_t sock_id, struct w5500_socket_address *addr)
+rdnx_err_t w5500_socket_connect(eth_w5500_ctx_t *dev, uint8_t sock_id, struct w5500_socket_address *addr)
 {
     int ret;
     uint8_t status;
@@ -367,17 +367,17 @@ yaa_err_t w5500_socket_connect(eth_w5500_ctx_t *dev, uint8_t sock_id, struct w55
     if (sock_id > W5500_MAX_SOCK_NUMBER)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     if (!addr)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, &status, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -386,31 +386,31 @@ yaa_err_t w5500_socket_connect(eth_w5500_ctx_t *dev, uint8_t sock_id, struct w55
     if (status != W5500_Sn_SR_INIT)
     {
         W5500_ERR("Bad status 0x%02X, socket %d", (int)status, sock_id);
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_DIPR, addr->ip, 4);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
     }
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_DPORT, addr->port, 2);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
     }
 
     ret = w5500_socket_command_write(dev, sock_id, W5500_Sn_CR_CONNECT);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write command %d", ret);
         return ret;
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -421,19 +421,19 @@ yaa_err_t w5500_socket_connect(eth_w5500_ctx_t *dev, uint8_t sock_id, struct w55
  *
  * @return 0 on success, -ENOTCONN if not connected, other negative error codes
  *******************************************************************************/
-yaa_err_t w5500_socket_disconnect(eth_w5500_ctx_t *dev, uint8_t sock_id)
+rdnx_err_t w5500_socket_disconnect(eth_w5500_ctx_t *dev, uint8_t sock_id)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint8_t status;
 
     if (sock_id > W5500_MAX_SOCK_NUMBER)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, &status, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -442,7 +442,7 @@ yaa_err_t w5500_socket_disconnect(eth_w5500_ctx_t *dev, uint8_t sock_id)
     if (status != W5500_Sn_SR_ESTABLISHED && status != W5500_Sn_SR_CLOSE_WAIT)
     {
         W5500_ERR("Bad status 0x%02X, socket %d", (int)status, sock_id);
-        return YAA_ERR_IO;
+        return RDNX_ERR_IO;
     }
 
     return w5500_socket_command_write(dev, sock_id, W5500_Sn_CR_DISCON);
@@ -457,9 +457,9 @@ yaa_err_t w5500_socket_disconnect(eth_w5500_ctx_t *dev, uint8_t sock_id)
  * @param len     - Data length
  *
  *******************************************************************************/
-yaa_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *buf, uint16_t len)
+rdnx_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *buf, uint16_t len)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint16_t free_size = 0;
     uint16_t wr_ptr;
     uint8_t wr_ptr_buf[2];
@@ -471,11 +471,11 @@ yaa_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *b
     if (sock_id > W5500_MAX_SOCK_NUMBER)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, &status, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -484,13 +484,13 @@ yaa_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *b
     if (status != W5500_Sn_SR_ESTABLISHED && status != W5500_Sn_SR_UDP && status != W5500_Sn_SR_MACRAW)
     {
         W5500_ERR("Bad status 0x%02X, socket %d", (int)status, sock_id);
-        return YAA_ERR_IO;
+        return RDNX_ERR_IO;
     }
 
     while (total_sent < len)
     {
         ret = w5500_read_16bit_reg(dev, W5500_SOCKET_REG_BLOCK(sock_id), W5500_Sn_TX_FSR, &free_size);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             W5500_ERR("Fail to read reg %d", ret);
             return ret;
@@ -499,7 +499,7 @@ yaa_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *b
         if (free_size == 0)
         {
             ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, &status, 1);
-            if (ret != YAA_ERR_OK)
+            if (ret != RDNX_ERR_OK)
             {
                 W5500_ERR("Fail to read reg %d", ret);
                 return ret;
@@ -508,24 +508,24 @@ yaa_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *b
             if (status != W5500_Sn_SR_ESTABLISHED && status != W5500_Sn_SR_UDP && status != W5500_Sn_SR_MACRAW)
             {
                 W5500_ERR("Bad status 0x%02X, socket %d", (int)status, sock_id);
-                return YAA_ERR_IO;
+                return RDNX_ERR_IO;
             }
 
-            yaa_mdelay(1);
+            rdnx_mdelay(1);
             continue;
         }
 
         chunk_size = (len - total_sent) < free_size ? (len - total_sent) : free_size;
 
         ret = w5500_read_16bit_reg(dev, W5500_SOCKET_REG_BLOCK(sock_id), W5500_Sn_TX_WR, &wr_ptr);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             W5500_ERR("Fail to read reg %d", ret);
             return ret;
         }
 
         ret = w5500_reg_write(dev, W5500_SOCKET_TX_BUF_BLOCK(sock_id), wr_ptr, data + total_sent, chunk_size);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             W5500_ERR("Fail to write reg %d", ret);
             return ret;
@@ -537,14 +537,14 @@ yaa_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *b
         wr_ptr_buf[1] = W5500_BYTE_LOW(wr_ptr);
 
         ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_TX_WR, wr_ptr_buf, 2);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             W5500_ERR("Fail to write reg %d", ret);
             return ret;
         }
 
         ret = w5500_socket_command_write(dev, sock_id, W5500_Sn_CR_SEND);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             W5500_ERR("Fail to write command %d", ret);
             return ret;
@@ -553,7 +553,7 @@ yaa_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *b
         total_sent += chunk_size;
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -566,9 +566,9 @@ yaa_err_t w5500_socket_send(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *b
  *
  * @return Number of bytes received on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, uint16_t len, uint16_t *received)
+rdnx_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, uint16_t len, uint16_t *received)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint16_t rx_size = 0;
     uint16_t rd_ptr;
     uint8_t rd_ptr_buf[2];
@@ -577,11 +577,11 @@ yaa_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, ui
     if (sock_id > W5500_MAX_SOCK_NUMBER)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, &status, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -590,13 +590,13 @@ yaa_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, ui
     if (status != W5500_Sn_SR_ESTABLISHED && status != W5500_Sn_SR_UDP && status != W5500_Sn_SR_MACRAW)
     {
         W5500_ERR("Bad status 0x%02X, socket %d", (int)status, sock_id);
-        return YAA_ERR_IO;
+        return RDNX_ERR_IO;
     }
 
     while (1)
     {
         ret = w5500_read_16bit_reg(dev, W5500_SOCKET_REG_BLOCK(sock_id), W5500_Sn_RX_RSR, &rx_size);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             W5500_ERR("Fail to read reg %d", ret);
             return ret;
@@ -608,7 +608,7 @@ yaa_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, ui
         }
 
         ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, &status, 1);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             W5500_ERR("Fail to read reg %d", ret);
             return ret;
@@ -617,10 +617,10 @@ yaa_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, ui
         if (status != W5500_Sn_SR_ESTABLISHED && status != W5500_Sn_SR_UDP && status != W5500_Sn_SR_MACRAW)
         {
             W5500_ERR("Bad status 0x%02X, socket %d", (int)status, sock_id);
-            return YAA_ERR_IO;
+            return RDNX_ERR_IO;
         }
 
-        yaa_mdelay(1);
+        rdnx_mdelay(1);
     }
 
     if (len > rx_size)
@@ -629,13 +629,13 @@ yaa_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, ui
     }
 
     ret = w5500_read_16bit_reg(dev, W5500_SOCKET_REG_BLOCK(sock_id), W5500_Sn_RX_RD, &rd_ptr);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         return ret;
     }
 
     ret = w5500_reg_read(dev, W5500_SOCKET_RX_BUF_BLOCK(sock_id), rd_ptr, buf, len);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         return ret;
     }
@@ -646,21 +646,21 @@ yaa_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, ui
     rd_ptr_buf[1] = W5500_BYTE_LOW(rd_ptr);
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_RX_RD, rd_ptr_buf, 2);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
     }
 
     ret = w5500_socket_command_write(dev, sock_id, W5500_Sn_CR_RECV);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write command %d", ret);
         return ret;
     }
 
     ret = w5500_socket_clear_interrupt(dev, sock_id, W5500_Sn_IR_RECV);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         return ret;
     }
@@ -670,7 +670,7 @@ yaa_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, ui
         *received = len;
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -684,10 +684,10 @@ yaa_err_t w5500_socket_recv(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, ui
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *buf, uint16_t len,
+rdnx_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void *buf, uint16_t len,
                                struct w5500_socket_address *to)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint8_t status;
     uint8_t mr;
     uint16_t free_size = 0;
@@ -697,11 +697,11 @@ yaa_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void 
     if (sock_id > W5500_MAX_SOCK_NUMBER || !buf || !to)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_MR, &mr, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -714,11 +714,11 @@ yaa_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void 
         break;
     default:
         W5500_ERR("Fail mode reg 0x%02X", mr);
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, &status, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -727,18 +727,18 @@ yaa_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void 
     if (status != W5500_Sn_SR_UDP && status != W5500_Sn_SR_MACRAW)
     {
         W5500_ERR("Bad status 0x%02X, socket %d", (int)status, sock_id);
-        return YAA_ERR_IO;
+        return RDNX_ERR_IO;
     }
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_DIPR, to->ip, 4);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
     }
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_DPORT, to->port, 2);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
@@ -747,7 +747,7 @@ yaa_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void 
     while (1)
     {
         ret = w5500_read_16bit_reg(dev, W5500_SOCKET_REG_BLOCK(sock_id), W5500_Sn_TX_FSR, &free_size);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             printf("%d: w5500_socket_sendto %d\n\r", __LINE__, ret);
             return ret;
@@ -759,7 +759,7 @@ yaa_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void 
         }
 
         ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, &status, 1);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             printf("%d: w5500_socket_sendto %d\n\r", __LINE__, ret);
             return ret;
@@ -768,21 +768,21 @@ yaa_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void 
         if (status != W5500_Sn_SR_UDP)
         {
             W5500_ERR("Bad status 0x%02X, socket %d", (int)status, sock_id);
-            return YAA_ERR_BADARG;
+            return RDNX_ERR_BADARG;
         }
 
-        yaa_mdelay(1);
+        rdnx_mdelay(1);
     }
 
     ret = w5500_read_16bit_reg(dev, W5500_SOCKET_REG_BLOCK(sock_id), W5500_Sn_TX_WR, &wr_ptr);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         printf("%d: w5500_socket_sendto %d\n\r", __LINE__, ret);
         return ret;
     }
 
     ret = w5500_reg_write(dev, W5500_SOCKET_TX_BUF_BLOCK(sock_id), wr_ptr, buf, len);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
@@ -794,20 +794,20 @@ yaa_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void 
     wr_ptr_buf[1] = W5500_BYTE_LOW(wr_ptr);
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_TX_WR, wr_ptr_buf, 2);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
     }
 
     ret = w5500_socket_command_write(dev, sock_id, W5500_Sn_CR_SEND);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write command %d", ret);
         return ret;
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -821,10 +821,10 @@ yaa_err_t w5500_socket_sendto(eth_w5500_ctx_t *dev, uint8_t sock_id, const void 
  *
  * @return Number of bytes received on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, uint16_t len,
+rdnx_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf, uint16_t len,
                                  struct w5500_socket_address *from, uint16_t *received)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint16_t rx_size = 0;
     uint16_t rd_ptr;
     uint8_t rd_ptr_buf[2];
@@ -835,11 +835,11 @@ yaa_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf
     if (sock_id > W5500_MAX_SOCK_NUMBER || !buf)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, &status, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -848,11 +848,11 @@ yaa_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf
     if (status != W5500_Sn_SR_UDP)
     {
         W5500_ERR("Bad status 0x%02X, socket %d", (int)status, sock_id);
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_read_16bit_reg(dev, W5500_SOCKET_REG_BLOCK(sock_id), W5500_Sn_RX_RSR, &rx_size);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -864,18 +864,18 @@ yaa_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf
         {
             *received = 0;
         }
-        return YAA_ERR_OK;
+        return RDNX_ERR_OK;
     }
 
     ret = w5500_read_16bit_reg(dev, W5500_SOCKET_REG_BLOCK(sock_id), W5500_Sn_RX_RD, &rd_ptr);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
     }
 
     ret = w5500_reg_read(dev, W5500_SOCKET_RX_BUF_BLOCK(sock_id), rd_ptr, header, 8);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -889,7 +889,7 @@ yaa_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf
     }
 
     ret = w5500_reg_read(dev, W5500_SOCKET_RX_BUF_BLOCK(sock_id), rd_ptr + 8, buf, len);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -911,14 +911,14 @@ yaa_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf
     rd_ptr_buf[1] = W5500_BYTE_LOW(rd_ptr);
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_RX_RD, rd_ptr_buf, 2);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
     }
 
     ret = w5500_socket_command_write(dev, sock_id, W5500_Sn_CR_RECV);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write command %d", ret);
         return ret;
@@ -928,7 +928,7 @@ yaa_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf
     {
         *received = len;
     }
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -940,28 +940,28 @@ yaa_err_t w5500_socket_recvfrom(eth_w5500_ctx_t *dev, uint8_t sock_id, void *buf
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_bind(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t port)
+rdnx_err_t w5500_socket_bind(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t port)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint8_t port_buf[2];
 
     if (sock_id > W5500_MAX_SOCK_NUMBER)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     port_buf[0] = W5500_BYTE_HIGH(port);
     port_buf[1] = W5500_BYTE_LOW(port);
 
     ret = w5500_socket_reg_write(dev, sock_id, W5500_Sn_PORT, port_buf, 2);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write reg %d", ret);
         return ret;
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -972,19 +972,19 @@ yaa_err_t w5500_socket_bind(eth_w5500_ctx_t *dev, uint8_t sock_id, uint16_t port
  *
  * @return 0 on success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_socket_listen(eth_w5500_ctx_t *dev, uint8_t sock_id)
+rdnx_err_t w5500_socket_listen(eth_w5500_ctx_t *dev, uint8_t sock_id)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint8_t status;
 
     if (sock_id > W5500_MAX_SOCK_NUMBER)
     {
         W5500_ERR("Bad arguments");
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_reg_read(dev, sock_id, W5500_Sn_SR, &status, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to read reg %d", ret);
         return ret;
@@ -993,16 +993,16 @@ yaa_err_t w5500_socket_listen(eth_w5500_ctx_t *dev, uint8_t sock_id)
     if (status != W5500_Sn_SR_INIT)
     {
         W5500_ERR("Bad status 0x%02X, socket %d", (int)status, sock_id);
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     ret = w5500_socket_command_write(dev, sock_id, W5500_Sn_CR_LISTEN);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         W5500_ERR("Fail to write command %d", ret);
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /*****************************************************************************
@@ -1016,11 +1016,11 @@ uint8_t w5500_socket_translate_protocol(uint32_t proto)
 {
     switch (proto)
     {
-    case YAA_SOCKET_IPPROTO_TCP:
+    case RDNX_SOCKET_IPPROTO_TCP:
     {
         return W5500_Sn_MR_TCP;
     }
-    case YAA_SOCKET_IPPROTO_UDP:
+    case RDNX_SOCKET_IPPROTO_UDP:
     {
         return W5500_Sn_MR_UDP;
     }

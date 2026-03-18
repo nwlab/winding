@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.22)
 
-option(YAA_CONFIG_CANBUS "Enable CAN bus support" OFF)
-option(YAA_CONFIG_NETWORK "Enable network support" OFF)
-option(YAA_CONFIG_RTT "Enable SEGGER RTT support" OFF)
-option(YAA_CONFIG_SENSOR "Enable sensor support" OFF)
-option(YAA_CONFIG_TFTP "Enable TFTP protocol support" OFF)
-option(YAA_CONFIG_I2C "Enable I2C support" OFF)
-option(YAA_CONFIG_SAL "Enable SAL support" OFF)
+option(RDNX_CONFIG_CANBUS "Enable RDNX CAN bus support" OFF)
+option(RDNX_CONFIG_NETWORK "Enable RDNX network support" OFF)
+option(RDNX_CONFIG_RTT "Enable SEGGER RTT support" OFF)
+option(RDNX_CONFIG_SENSOR "Enable RDNX sensor support" OFF)
+option(RDNX_CONFIG_TFTP "Enable TFTP protocol support" OFF)
+option(RDNX_CONFIG_I2C "Enable I2C support" OFF)
+option(RDNX_CONFIG_SAL "Enable SAL support" OFF)
 
-project(yaa_stm32)
-add_library(yaa_stm32 INTERFACE)
+project(rdnx_stm32)
+add_library(rdnx_stm32 INTERFACE)
 
 include("../cmake/target_arch.cmake")
 
@@ -24,21 +24,23 @@ else()
     set(CMAKE_TARGET_ARCHITECTURE_CODE "${CMAKE_TARGET_ARCHITECTURES}")
 endif()
 
-message(STATUS "YAA library target architectures: ${CMAKE_TARGET_ARCHITECTURES}")
+message(STATUS "RDNX library target architectures: ${CMAKE_TARGET_ARCHITECTURES}")
 
 # Enable CMake support for ASM and C languages
 enable_language(C ASM)
 
-target_compile_definitions(yaa_stm32 INTERFACE
+target_compile_definitions(rdnx_stm32 INTERFACE
     STM32F407xx
     $<$<CONFIG:Debug>:DEBUG>
-    YAA_CONFIG_CANBUS=$<BOOL:${YAA_CONFIG_CANBUS}>
-    YAA_CONFIG_NETWORK=$<BOOL:${YAA_CONFIG_NETWORK}>
-    YAA_CONFIG_SENSOR=$<BOOL:${YAA_CONFIG_SENSOR}>
-    YAA_CONFIG_TFTP=$<BOOL:${YAA_CONFIG_TFTP}>
+    RDNX_CONFIG_CANBUS=$<BOOL:${RDNX_CONFIG_CANBUS}>
+    RDNX_CONFIG_NETWORK=$<BOOL:${RDNX_CONFIG_NETWORK}>
+    RDNX_CONFIG_SENSOR=$<BOOL:${RDNX_CONFIG_SENSOR}>
+    RDNX_CONFIG_TFTP=$<BOOL:${RDNX_CONFIG_TFTP}>
+    RDNX_CONFIG_SAL=$<BOOL:${RDNX_CONFIG_SAL}>
+    RDNX_CONFIG_I2C=$<BOOL:${RDNX_CONFIG_I2C}>
 )
 
-target_include_directories(yaa_stm32 INTERFACE
+target_include_directories(rdnx_stm32 INTERFACE
     Inc
     Inc/drivers
     Inc/sensor
@@ -51,28 +53,28 @@ target_include_directories(yaa_stm32 INTERFACE
     ../Drivers/CMSIS/Include
 )
 
-target_sources(yaa_stm32 INTERFACE
-    Src/adc/ltc2946.c
+target_sources(rdnx_stm32 INTERFACE
     Src/adc/ade7758.c
-    Src/hal/yaa_gpio.c
-    Src/hal/yaa_spi.c
-    Src/onewire/ds2430.c
-    Src/onewire/ds2482.c
-    Src/yaa_bkpsram.c
-    Src/yaa_clock.c
-    Src/yaa_hal.c
-    Src/yaa_platform.c
-    Src/yaa_ring.c
-    Src/yaa_time.c
-    Src/yaa_util.c
+    Src/adc/ltc2946.c
+    Src/hal/rdnx_gpio.c
+    Src/hal/rdnx_spi.c
+    Src/hal/rdnx_timer_LL.c
+    Src/rdnx_alloc.c
+    Src/rdnx_bkpsram.c
+    Src/rdnx_clock.c
+    Src/rdnx_hal.c
+    Src/rdnx_platform.c
+    Src/rdnx_ring.c
+    Src/rdnx_time.c
+    Src/rdnx_util.c
 )
 
 if(CMAKE_TARGET_ARCHITECTURE_CODE STREQUAL "armv7")
-    target_sources(yaa_stm32 INTERFACE
-        Src/yaa_bootloader.c
-        Src/yaa_flash.c
-        Src/yaa_hardfault.c
-        Src/yaa_wdg.c
+    target_sources(rdnx_stm32 INTERFACE
+        Src/rdnx_bootloader.c
+        Src/rdnx_flash.c
+        Src/rdnx_hardfault.c
+        Src/rdnx_wdg.c
     )
 endif()
 
@@ -81,38 +83,40 @@ if(CMAKE_C_STANDARD LESS 11)
     message(ERROR "Generated code requires C11 or higher")
 endif()
 
-if(YAA_CONFIG_SAL)
-    target_sources(yaa_stm32 INTERFACE
-        Src/yaa_mempool.c
-        Src/yaa_sal.c
-        Src/yaa_queue.c
-        Src/yaa_event.c
+if(RDNX_CONFIG_SAL)
+    target_sources(rdnx_stm32 INTERFACE
+        Src/rdnx_mempool.c
+        Src/rdnx_sal.c
+        Src/rdnx_queue.c
+        Src/rdnx_event.c
     )
-endif(YAA_CONFIG_SAL)
+endif(RDNX_CONFIG_SAL)
 
-if(YAA_CONFIG_I2C)
-    target_sources(yaa_stm32 INTERFACE
-        Src/hal/yaa_i2c.c
+if(RDNX_CONFIG_I2C)
+    target_sources(rdnx_stm32 INTERFACE
+        Src/hal/rdnx_i2c.c
+        Src/onewire/ds2430.c
+        Src/onewire/ds2482.c
     )
-endif(YAA_CONFIG_I2C)
+endif(RDNX_CONFIG_I2C)
 
-if(YAA_CONFIG_CANBUS)
-    target_sources(yaa_stm32 INTERFACE
-        Src/hal/yaa_can.c
+if(RDNX_CONFIG_CANBUS)
+    target_sources(rdnx_stm32 INTERFACE
+        Src/hal/rdnx_can.c
     )
-endif(YAA_CONFIG_CANBUS)
+endif(RDNX_CONFIG_CANBUS)
 
-if(YAA_CONFIG_NETWORK)
+if(RDNX_CONFIG_NETWORK)
     add_subdirectory(Src/network)
-endif(YAA_CONFIG_NETWORK)
+endif(RDNX_CONFIG_NETWORK)
 
-if(YAA_CONFIG_RTT)
+if(RDNX_CONFIG_RTT)
     add_subdirectory(Src/rtt)
-endif(YAA_CONFIG_RTT)
+endif(RDNX_CONFIG_RTT)
 
-if(YAA_CONFIG_SENSOR)
+if(RDNX_CONFIG_SENSOR)
     add_subdirectory(Src/sensor)
-endif(YAA_CONFIG_SENSOR)
+endif(RDNX_CONFIG_SENSOR)
 
 add_subdirectory(Src/drivers)
 add_subdirectory(Src/nvram_kved)

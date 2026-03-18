@@ -106,9 +106,8 @@
 #include <stdint.h>
 
 /* Core includes. */
-#include <hal/yaa_i2c.h>
-#include <yaa_types.h>
-#include <yaa_macro.h>
+#include <hal/rdnx_i2c.h>
+#include <rdnx_types.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -358,6 +357,20 @@ extern "C"
 #define LTC2946_GPIOCFG_GPIO2_OUT_MASK    0xFD
 #define LTC2946_GPIO3_CTRL_GPIO3_MASK     0xBF
 
+/**
+ * @brief  Sense resistor value for LTC2946 measurements
+ *
+ * This macro defines the resistance of the sense resistor (RSENSE) used
+ * by the LTC2946 fuel gauge IC for current and power measurements.
+ * The value is in ohms.
+ *
+ * Example usage:
+ * @code
+ * float current = voltage_drop / LTC2946_RSENSE_OHM;
+ * @endcode
+ */
+#define LTC2946_RSENSE_OHM  (0.02f)
+
 /* ============================================================================
  * Public Type Declarations
  * ==========================================================================*/
@@ -370,7 +383,7 @@ typedef struct ltc2946_params
     /**
      * @brief I2C handle
      */
-    yaa_i2c_handle_t i2c;
+    rdnx_i2c_handle_t i2c;
 
     /**
      * @brief I2C address of the device
@@ -398,7 +411,7 @@ typedef struct ltc2946_values
     uint32_t time_code;
 } ltc2946_values_t;
 
-YAA_STATIC_ASSERT(sizeof(ltc2946_values_t) == 44);
+static_assert(sizeof(ltc2946_values_t) == 44, "Bad size of ltc2946_values_t");
 
 /* ============================================================================
  * Public Variable Declarations
@@ -422,9 +435,9 @@ static const float LTC2946_TIME_lsb = 16.39543E-3;                       //!< St
  * @param[out] handle Pointer to memory which, on success, will contain a
  *                    handle to the configured device.
  *
- * @return #YAA_ERR_OK on success
+ * @return #RDNX_ERR_OK on success
  */
-yaa_err_t ltc2946_init(const ltc2946_params_t *param, ltc2946_handle_t *handle);
+rdnx_err_t ltc2946_init(const ltc2946_params_t *param, ltc2946_handle_t *handle);
 
 /**
  * @brief Free an LTC2946 device
@@ -436,9 +449,9 @@ yaa_err_t ltc2946_init(const ltc2946_params_t *param, ltc2946_handle_t *handle);
  *
  * @param[in] handle Handle to the LTC2946 device
  *
- * @return #YAA_ERR_OK on success
+ * @return #RDNX_ERR_OK on success
  */
-yaa_err_t ltc2946_destroy(ltc2946_handle_t handle);
+rdnx_err_t ltc2946_destroy(ltc2946_handle_t handle);
 
 /**
  * @brief Read data from an LTC2946 device
@@ -450,9 +463,9 @@ yaa_err_t ltc2946_destroy(ltc2946_handle_t handle);
  * @param[out] values         Pointer to memory which, upon successful
  *                            completion, will contain the received data.
  *
- * @return #YAA_ERR_OK on success
+ * @return #RDNX_ERR_OK on success
  */
-yaa_err_t ltc2946_read(ltc2946_handle_t handle, ltc2946_values_t *values);
+rdnx_err_t ltc2946_read(ltc2946_handle_t handle, ltc2946_values_t *values);
 
 /**
  * @brief Print LTC2946 measurement values.
@@ -480,6 +493,105 @@ yaa_err_t ltc2946_read(ltc2946_handle_t handle, ltc2946_values_t *values);
  *          code size and execution time on embedded systems.
  */
 void ltc2946_print(const ltc2946_values_t *v);
+
+/**
+ * @brief Convert LTC2946 current register code to amperes.
+ *
+ * Converts raw CURRENT register value read from the LTC2946
+ * into physical current in amperes.
+ *
+ * Conversion depends on the configured sense resistor value.
+ *
+ * @param code Raw 16-bit CURRENT register value.
+ * @param shunt_ohm   Current shunt resistance in ohms
+ *
+ * @return Measured current in amperes (A).
+ */
+float ltc2946_current_to_amps(uint16_t code, float shunt_ohm);
+
+/**
+ * @brief Convert LTC2946 VIN register code to volts.
+ *
+ * Converts raw VIN measurement register value into input
+ * voltage referenced to GND.
+ *
+ * @param code Raw 16-bit VIN register value.
+ *
+ * @return Input voltage in volts (V).
+ */
+float ltc2946_vin_to_volts(uint16_t code);
+
+/**
+ * @brief Convert LTC2946 ADIN register code to volts.
+ *
+ * Converts raw auxiliary ADC input (ADIN) register value
+ * into voltage.
+ *
+ * @param code Raw 16-bit ADIN register value.
+ *
+ * @return ADIN voltage in volts (V).
+ */
+float ltc2946_adin_to_volts(uint16_t code);
+
+/**
+ * @brief Convert LTC2946 power register code to watts.
+ *
+ * Converts instantaneous power measurement register value
+ * into watts.
+ *
+ * @param code Raw 24/32-bit POWER register value.
+ * @param shunt_ohm   Current shunt resistance in ohms
+ *
+ * @return Instantaneous power in watts (W).
+ */
+float ltc2946_power_to_watts(uint32_t code, float shunt_ohm);
+
+/**
+ * @brief Convert LTC2946 accumulated charge code to coulombs.
+ *
+ * Converts CHARGE accumulator register value into total
+ * transferred electric charge.
+ *
+ * The accumulator integrates current over time:
+ * Q = ∫ I dt
+ *
+ * @param code Raw 32-bit CHARGE accumulator value.
+ * @param shunt_ohm   Current shunt resistance in ohms
+ *
+ * @return Accumulated charge in coulombs (C).
+ */
+float ltc2946_charge_to_coulombs(uint32_t code, float shunt_ohm);
+
+/**
+ * @brief Convert LTC2946 accumulated energy code to joules.
+ *
+ * Converts ENERGY accumulator register value into total
+ * consumed energy.
+ *
+ * The accumulator integrates power over time:
+ * E = ∫ P dt
+ *
+ * @param code Raw 32-bit ENERGY accumulator value.
+ * @param shunt_ohm   Current shunt resistance in ohms
+ *
+ * @return Accumulated energy in joules (J).
+ */
+float ltc2946_energy_to_joules(uint32_t code, float shunt_ohm);
+
+/**
+ * @brief Convert LTC2946 time accumulator code to seconds.
+ *
+ * Converts TIME accumulator register value into elapsed
+ * measurement time.
+ *
+ * Time resolution depends on ADC conversion mode configured
+ * in the LTC2946.
+ *
+ * @param code Raw 32-bit TIME accumulator value.
+ *
+ * @return Elapsed time in seconds (s).
+ */
+float ltc2946_time_to_seconds(uint32_t code);
 
 #ifdef __cplusplus
 }

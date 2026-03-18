@@ -27,11 +27,11 @@
 #include <inttypes.h>
 
 /* Core includes. */
-#include <hal/yaa_gpio.h>
-#include <hal/yaa_spi.h>
-#include <yaa_macro.h>
-#include <yaa_sal.h>
-#include <yaa_types.h>
+#include <hal/rdnx_gpio.h>
+#include <hal/rdnx_spi.h>
+#include <rdnx_macro.h>
+#include <rdnx_sal.h>
+#include <rdnx_types.h>
 
 #include <network/ethernet/w5500.h>
 /* Temporary use LL API */
@@ -42,16 +42,16 @@
 #include <network/ethernet/w5500.h>
 
 #include "w5500_internal.h"
-#include "../yaa_socket_backend.h"
+#include "../rdnx_socket_backend.h"
 
 /* ============================================================================
  * Private Macro Definitions
  * ==========================================================================*/
 
-// #define YAA_W5500_UNDERLINE
+// #define RDNX_W5500_UNDERLINE
 
-#ifndef YAA_DEFAULT_CONNECTION_BUFFER_SIZE
-    #define YAA_DEFAULT_CONNECTION_BUFFER_SIZE 2048
+#ifndef RDNX_DEFAULT_CONNECTION_BUFFER_SIZE
+    #define RDNX_DEFAULT_CONNECTION_BUFFER_SIZE 2048
 #endif
 
 #define W5500_RESET_TIMEOUT_CNT   100U
@@ -64,22 +64,22 @@
  * Private Function Declaration
  * ==========================================================================*/
 
-#ifdef YAA_W5500_UNDERLINE
+#ifdef RDNX_W5500_UNDERLINE
 #include <ether_w5500.h>
 static void spi_ll_off();
 static void spi_ll_on();
 static uint8_t spi_ll_spio(uint8_t val);
 static void wz_rst_on();
 static void wz_rst_off();
-#endif /* YAA_W5500_UNDERLINE */
+#endif /* RDNX_W5500_UNDERLINE */
 
-static void w5500_irq_callback(yaa_gpio_port_t port, yaa_gpio_pin_t pin, void *ctx);
+static void w5500_irq_callback(rdnx_gpio_port_t port, rdnx_gpio_pin_t pin, void *ctx);
 
 /* ============================================================================
  * Private Variable Definitions
  * ==========================================================================*/
 
-#ifdef YAA_W5500_UNDERLINE
+#ifdef RDNX_W5500_UNDERLINE
 static LL_Ether spi_api = {
     .cs_on = spi_ll_on,
     .cs_off = spi_ll_off,
@@ -95,88 +95,88 @@ static wiz_NetInfo net_info = { .mac = { 0xEA, 0x11, 0x22, 0x33, 0x44, 0xEA },
 
 static eth_w5500_ctx_t *eth_ctx = NULL;
 
-#endif /* YAA_W5500_UNDERLINE */
+#endif /* RDNX_W5500_UNDERLINE */
 
 
 /* ============================================================================
  * Global Function Definitions
  * ==========================================================================*/
 
-yaa_err_t eth_w5500_init(const eth_w5500_params_t *param, eth_w5500_handle_t *handle)
+rdnx_err_t eth_w5500_init(const eth_w5500_params_t *param, eth_w5500_handle_t *handle)
 {
-    yaa_err_t status = YAA_ERR_OK;
+    rdnx_err_t status = RDNX_ERR_OK;
 
     if (param == NULL || handle == NULL)
     {
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
-    eth_w5500_ctx_t *ctx = (eth_w5500_ctx_t *)yaa_alloc(sizeof(eth_w5500_ctx_t));
+    eth_w5500_ctx_t *ctx = (eth_w5500_ctx_t *)rdnx_alloc(sizeof(eth_w5500_ctx_t));
     if (ctx == NULL)
     {
         W5500_ERR("No memory");
-        return YAA_ERR_NOMEM;
+        return RDNX_ERR_NOMEM;
     }
 
     ctx->gpio_cs = NULL;
     ctx->gpio_reset = NULL;
     ctx->gpio_int = NULL;
 
-    if (param->cs_port != YAA_GPIO_PORT_NONE)
+    if (param->cs_port != RDNX_GPIO_PORT_NONE)
     {
-        yaa_gpio_params_t gpio_cs_param = {
+        rdnx_gpio_params_t gpio_cs_param = {
             .port = param->cs_port,
             .pin = param->cs_pin,
-            .pull = YAA_GPIO_PULL_UP,
-            .direction = YAA_GPIO_DIRECTION_OUTPUT,
+            .pull = RDNX_GPIO_PULL_UP,
+            .direction = RDNX_GPIO_DIRECTION_OUTPUT,
             .cb = NULL,
         };
-        status = yaa_gpio_init(&gpio_cs_param, &ctx->gpio_cs);
-        if (status != YAA_ERR_OK)
+        status = rdnx_gpio_init(&gpio_cs_param, &ctx->gpio_cs);
+        if (status != RDNX_ERR_OK)
         {
-            yaa_free(ctx);
+            rdnx_free(ctx);
             return status;
         }
-        (void)yaa_gpio_set(ctx->gpio_cs, 1);
+        (void)rdnx_gpio_set(ctx->gpio_cs, 1);
     }
 
-    if (param->rst_port != YAA_GPIO_PORT_NONE)
+    if (param->rst_port != RDNX_GPIO_PORT_NONE)
     {
-        yaa_gpio_params_t gpio_rst_param = {
+        rdnx_gpio_params_t gpio_rst_param = {
             .port = param->rst_port,
             .pin = param->rst_pin,
-            .pull = YAA_GPIO_PULL_UP,
-            .direction = YAA_GPIO_DIRECTION_OUTPUT,
+            .pull = RDNX_GPIO_PULL_UP,
+            .direction = RDNX_GPIO_DIRECTION_OUTPUT,
             .cb = NULL,
         };
-        status = yaa_gpio_init(&gpio_rst_param, &ctx->gpio_reset);
-        if (status != YAA_ERR_OK)
+        status = rdnx_gpio_init(&gpio_rst_param, &ctx->gpio_reset);
+        if (status != RDNX_ERR_OK)
         {
             goto free_ctx;
         }
-        (void)yaa_gpio_set(ctx->gpio_reset, 1);
+        (void)rdnx_gpio_set(ctx->gpio_reset, 1);
     }
 
-    if (param->irq_port != YAA_GPIO_PORT_NONE)
+    if (param->irq_port != RDNX_GPIO_PORT_NONE)
     {
-        yaa_gpio_params_t gpio_irq_param = {
+        rdnx_gpio_params_t gpio_irq_param = {
             .port = param->irq_port,
             .pin = param->irq_pin,
-            .pull = YAA_GPIO_PULL_UP,
-            .direction = YAA_GPIO_DIRECTION_INTERRUPT,
-            .irq_trigger = YAA_GPIO_IRQ_TRIGGER_EDGE_FALLING,
+            .pull = RDNX_GPIO_PULL_UP,
+            .direction = RDNX_GPIO_DIRECTION_INTERRUPT,
+            .irq_trigger = RDNX_GPIO_IRQ_TRIGGER_EDGE_FALLING,
             .cb = w5500_irq_callback,
             .user_ctx = ctx
         };
-        status = yaa_gpio_init(&gpio_irq_param, &ctx->gpio_int);
-        if (status != YAA_ERR_OK)
+        status = rdnx_gpio_init(&gpio_irq_param, &ctx->gpio_int);
+        if (status != RDNX_ERR_OK)
         {
             goto free_ctx;
         }
     }
 
     ctx->spi = param->spi;
-    memcpy(ctx->mac_addr, param->mac, YAA_NET_ETH_ADDR_LEN);
+    memcpy(ctx->mac_addr, param->mac, RDNX_NET_ETH_ADDR_LEN);
 	memcpy(&ctx->retry_time, &param->retry_time, 1);
 	memcpy(&ctx->retry_count, &param->retry_count, 1);
 
@@ -187,7 +187,7 @@ yaa_err_t eth_w5500_init(const eth_w5500_params_t *param, eth_w5500_handle_t *ha
     }
     else
     {
-        buff_size = YAA_DEFAULT_CONNECTION_BUFFER_SIZE;
+        buff_size = RDNX_DEFAULT_CONNECTION_BUFFER_SIZE;
     }
 
     if (buff_size <= 1024)
@@ -206,32 +206,32 @@ yaa_err_t eth_w5500_init(const eth_w5500_params_t *param, eth_w5500_handle_t *ha
     w5500_sockets_init(ctx);
 
     status = w5500_setup(ctx);
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
         W5500_ERR("Fail setup W5500");
         goto free_ctx;
     }
 
     status = w5500_set_ip(ctx, param->ip);
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
         goto free_ctx;
     }
 
     status = w5500_set_subnet(ctx, param->subnet);
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
         goto free_ctx;
     }
 
     status = w5500_set_gateway(ctx, param->gw);
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
         goto free_ctx;
     }
 
     status = w5500_check_link_status(ctx);
-    W5500_ERR("Link is %s", status == YAA_ERR_OK ? "UP" : "DOWN");
+    W5500_ERR("Link is %s", status == RDNX_ERR_OK ? "UP" : "DOWN");
 
     status = w5500_socket_irq_config(ctx, 0xFF);
 
@@ -239,173 +239,173 @@ yaa_err_t eth_w5500_init(const eth_w5500_params_t *param, eth_w5500_handle_t *ha
     w5500_dump_reg(ctx);
 #endif
 
-#ifdef YAA_W5500_UNDERLINE
+#ifdef RDNX_W5500_UNDERLINE
     // Need for callbacks
     eth_ctx = ctx;
 
     if (ether_w5500_init(&spi_api, &net_info) != 0)
     {
         W5500_ERR("Fail init W5500");
-        yaa_free(ctx);
-        return YAA_ERR_FAIL;
+        rdnx_free(ctx);
+        return RDNX_ERR_FAIL;
     }
 
     w5500_dump_reg(ctx);
-#endif /* YAA_W5500_UNDERLINE */
+#endif /* RDNX_W5500_UNDERLINE */
 
     *handle = (eth_w5500_handle_t)ctx;
 
     W5500_DEB("Init done");
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 
 free_ctx:
-	yaa_free(ctx);
+	rdnx_free(ctx);
 
 	return status;
 }
 
-yaa_err_t eth_w5500_update_link_status(eth_w5500_handle_t handle, yaa_eth_link_state_t *up)
+rdnx_err_t eth_w5500_update_link_status(eth_w5500_handle_t handle, rdnx_eth_link_state_t *up)
 {
-    eth_w5500_ctx_t *ctx = YAA_CAST(eth_w5500_ctx_t *, handle);
+    eth_w5500_ctx_t *ctx = RDNX_CAST(eth_w5500_ctx_t *, handle);
     if (ctx == NULL)
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
-#ifdef YAA_W5500_UNDERLINE
+#ifdef RDNX_W5500_UNDERLINE
     int8_t phylink = wizphy_getphylink();
 
     if (phylink < 0)
     {
         W5500_ERR("Fail get phy link W5500");
-        return YAA_ERR_IO;
+        return RDNX_ERR_IO;
     }
 
     W5500_DEB("PHY Link is %d", phylink);
 
     if (up)
     {
-        *up = (phylink != 0 ? YAA_ETH_LINK_UP : YAA_ETH_LINK_DOWN);
+        *up = (phylink != 0 ? RDNX_ETH_LINK_UP : RDNX_ETH_LINK_DOWN);
     }
 #endif
 
-    yaa_err_t status = w5500_check_link_status(ctx);
-    W5500_DEB("Link is %s", status == YAA_ERR_OK ? "UP" : "DOWN");
+    rdnx_err_t status = w5500_check_link_status(ctx);
+    W5500_DEB("Link is %s", status == RDNX_ERR_OK ? "UP" : "DOWN");
 
     if (up)
     {
-        *up = (status == YAA_ERR_OK ? YAA_ETH_LINK_UP : YAA_ETH_LINK_DOWN);
+        *up = (status == RDNX_ERR_OK ? RDNX_ETH_LINK_UP : RDNX_ETH_LINK_DOWN);
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
-yaa_err_t eth_w5500_destroy(eth_w5500_handle_t handle)
+rdnx_err_t eth_w5500_destroy(eth_w5500_handle_t handle)
 {
-    eth_w5500_ctx_t *ctx = YAA_CAST(eth_w5500_ctx_t *, handle);
+    eth_w5500_ctx_t *ctx = RDNX_CAST(eth_w5500_ctx_t *, handle);
     if (ctx == NULL)
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
 
     if (ctx->gpio_cs != NULL)
     {
-        yaa_gpio_destroy(ctx->gpio_cs);
+        rdnx_gpio_destroy(ctx->gpio_cs);
     }
 
     if (ctx->gpio_reset != NULL)
     {
-        yaa_gpio_destroy(ctx->gpio_reset);
+        rdnx_gpio_destroy(ctx->gpio_reset);
     }
 
     if (ctx->gpio_int != NULL)
     {
-        yaa_gpio_destroy(ctx->gpio_int);
+        rdnx_gpio_destroy(ctx->gpio_int);
     }
-#ifdef YAA_W5500_UNDERLINE
+#ifdef RDNX_W5500_UNDERLINE
     eth_ctx = NULL;
 #endif
-    yaa_free(ctx);
+    rdnx_free(ctx);
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
-yaa_err_t eth_w5500_set_mac(eth_w5500_handle_t handle, const uint8_t mac[6])
+rdnx_err_t eth_w5500_set_mac(eth_w5500_handle_t handle, const uint8_t mac[6])
 {
-    eth_w5500_ctx_t *ctx = YAA_CAST(eth_w5500_ctx_t *, handle);
+    eth_w5500_ctx_t *ctx = RDNX_CAST(eth_w5500_ctx_t *, handle);
     if (ctx == NULL)
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
     return w5500_set_mac(ctx, mac);
 }
 
-yaa_err_t eth_w5500_set_ip(eth_w5500_handle_t handle, const uint8_t ip[4])
+rdnx_err_t eth_w5500_set_ip(eth_w5500_handle_t handle, const uint8_t ip[4])
 {
-    eth_w5500_ctx_t *ctx = YAA_CAST(eth_w5500_ctx_t *, handle);
+    eth_w5500_ctx_t *ctx = RDNX_CAST(eth_w5500_ctx_t *, handle);
     if (ctx == NULL)
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
     return w5500_set_ip(ctx, ip);
 }
 
-yaa_err_t eth_w5500_set_subnet(eth_w5500_handle_t handle, const uint8_t subnet[4])
+rdnx_err_t eth_w5500_set_subnet(eth_w5500_handle_t handle, const uint8_t subnet[4])
 {
-    eth_w5500_ctx_t *ctx = YAA_CAST(eth_w5500_ctx_t *, handle);
+    eth_w5500_ctx_t *ctx = RDNX_CAST(eth_w5500_ctx_t *, handle);
     if (ctx == NULL)
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
     return w5500_set_subnet(ctx, subnet);
 }
 
-yaa_err_t eth_w5500_set_gateway(eth_w5500_handle_t handle, const uint8_t gateway[4])
+rdnx_err_t eth_w5500_set_gateway(eth_w5500_handle_t handle, const uint8_t gateway[4])
 {
-    eth_w5500_ctx_t *ctx = YAA_CAST(eth_w5500_ctx_t *, handle);
+    eth_w5500_ctx_t *ctx = RDNX_CAST(eth_w5500_ctx_t *, handle);
     if (ctx == NULL)
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
     return w5500_set_gateway(ctx, gateway);
 }
 
-yaa_err_t eth_w5500_get_mac(eth_w5500_handle_t handle, uint8_t mac[6])
+rdnx_err_t eth_w5500_get_mac(eth_w5500_handle_t handle, uint8_t mac[6])
 {
-    eth_w5500_ctx_t *ctx = YAA_CAST(eth_w5500_ctx_t *, handle);
+    eth_w5500_ctx_t *ctx = RDNX_CAST(eth_w5500_ctx_t *, handle);
     if (ctx == NULL)
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
     return w5500_get_mac(ctx, mac);
 }
 
-yaa_err_t eth_w5500_get_ip(eth_w5500_handle_t handle, uint8_t ip[4])
+rdnx_err_t eth_w5500_get_ip(eth_w5500_handle_t handle, uint8_t ip[4])
 {
-    eth_w5500_ctx_t *ctx = YAA_CAST(eth_w5500_ctx_t *, handle);
+    eth_w5500_ctx_t *ctx = RDNX_CAST(eth_w5500_ctx_t *, handle);
     if (ctx == NULL)
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
     return w5500_get_ip(ctx, ip);
 }
 
-yaa_err_t eth_w5500_get_subnet(eth_w5500_handle_t handle, uint8_t subnet[4])
+rdnx_err_t eth_w5500_get_subnet(eth_w5500_handle_t handle, uint8_t subnet[4])
 {
-    eth_w5500_ctx_t *ctx = YAA_CAST(eth_w5500_ctx_t *, handle);
+    eth_w5500_ctx_t *ctx = RDNX_CAST(eth_w5500_ctx_t *, handle);
     if (ctx == NULL)
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
     return w5500_get_subnet(ctx, subnet);
 }
 
-yaa_err_t eth_w5500_get_gateway(eth_w5500_handle_t handle, uint8_t gateway[4])
+rdnx_err_t eth_w5500_get_gateway(eth_w5500_handle_t handle, uint8_t gateway[4])
 {
-    eth_w5500_ctx_t *ctx = YAA_CAST(eth_w5500_ctx_t *, handle);
+    eth_w5500_ctx_t *ctx = RDNX_CAST(eth_w5500_ctx_t *, handle);
     if (ctx == NULL)
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
     return w5500_get_gateway(ctx, gateway);
 }
@@ -419,11 +419,11 @@ yaa_err_t eth_w5500_get_gateway(eth_w5500_handle_t handle, uint8_t gateway[4])
  *
  * @param ctx W5500 context
  *
- * @return yaa_err_t
+ * @return rdnx_err_t
  */
-static inline yaa_err_t w5500_cs_low(const eth_w5500_ctx_t *ctx)
+static inline rdnx_err_t w5500_cs_low(const eth_w5500_ctx_t *ctx)
 {
-    return yaa_gpio_set(ctx->gpio_cs, 0);
+    return rdnx_gpio_set(ctx->gpio_cs, 0);
 }
 
 /**
@@ -431,11 +431,11 @@ static inline yaa_err_t w5500_cs_low(const eth_w5500_ctx_t *ctx)
  *
  * @param ctx W5500 context
  *
- * @return yaa_err_t
+ * @return rdnx_err_t
  */
-static inline yaa_err_t w5500_cs_high(const eth_w5500_ctx_t *ctx)
+static inline rdnx_err_t w5500_cs_high(const eth_w5500_ctx_t *ctx)
 {
-    return yaa_gpio_set(ctx->gpio_cs, 1);
+    return rdnx_gpio_set(ctx->gpio_cs, 1);
 }
 
 /******************************************************************************
@@ -449,18 +449,18 @@ static inline yaa_err_t w5500_cs_high(const eth_w5500_ctx_t *ctx)
  *
  * @return 0 in case of success, negative error code otherwise
 *******************************************************************************/
-yaa_err_t w5500_reg_write(eth_w5500_ctx_t *ctx,
+rdnx_err_t w5500_reg_write(eth_w5500_ctx_t *ctx,
                            uint8_t block,
                            uint16_t addr,
                            const uint8_t *data,
                            uint16_t len)
 {
     uint8_t spi_tx[3 + len];
-    yaa_err_t ret;
+    rdnx_err_t ret;
 
     if (ctx == NULL)
     {
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     spi_tx[0] = W5500_BYTE_HIGH(addr);
@@ -471,7 +471,7 @@ yaa_err_t w5500_reg_write(eth_w5500_ctx_t *ctx,
 
     (void)w5500_cs_low(ctx);
 
-    ret = yaa_spi_transmitreceive(ctx->spi, spi_tx, NULL, 3 + len, 0);
+    ret = rdnx_spi_transmitreceive(ctx->spi, spi_tx, NULL, 3 + len, 0);
 
     (void)w5500_cs_high(ctx);
 
@@ -489,18 +489,18 @@ yaa_err_t w5500_reg_write(eth_w5500_ctx_t *ctx,
  *
  * @return 0 in case of success, negative error code otherwise
 *******************************************************************************/
-yaa_err_t w5500_reg_read(eth_w5500_ctx_t *ctx,
+rdnx_err_t w5500_reg_read(eth_w5500_ctx_t *ctx,
                           uint8_t block,
                           uint16_t addr,
                           uint8_t *data,
                           uint16_t len)
 {
     uint8_t spi_buffer[3 + len];
-    yaa_err_t ret;
+    rdnx_err_t ret;
 
     if (ctx == NULL)
     {
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     spi_buffer[0] = W5500_BYTE_HIGH(addr);
@@ -509,11 +509,11 @@ yaa_err_t w5500_reg_read(eth_w5500_ctx_t *ctx,
 
     (void)w5500_cs_low(ctx);
 
-    ret = yaa_spi_transmitreceive(ctx->spi, spi_buffer, spi_buffer, 3 + len, 3 + len);
+    ret = rdnx_spi_transmitreceive(ctx->spi, spi_buffer, spi_buffer, 3 + len, 3 + len);
 
     (void)w5500_cs_high(ctx);
 
-    if (ret == YAA_ERR_OK)
+    if (ret == RDNX_ERR_OK)
     {
         memcpy(data, &spi_buffer[3], len);
 #ifdef DEBUG
@@ -540,9 +540,9 @@ yaa_err_t w5500_reg_read(eth_w5500_ctx_t *ctx,
  *
  * @return 0 in case of success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_read_16bit_reg(eth_w5500_ctx_t *dev, uint8_t block, uint16_t addr, uint16_t *value)
+rdnx_err_t w5500_read_16bit_reg(eth_w5500_ctx_t *dev, uint8_t block, uint16_t addr, uint16_t *value)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint8_t data[2];
     uint16_t val1, val2;
     int attempts = 0;
@@ -569,11 +569,11 @@ yaa_err_t w5500_read_16bit_reg(eth_w5500_ctx_t *dev, uint8_t block, uint16_t add
 
     if (attempts >= max_attempts)
     {
-        return YAA_ERR_IO;
+        return RDNX_ERR_IO;
     }
 
     *value = val1;
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
  /******************************************************************************
@@ -603,7 +603,7 @@ void w5500_sockets_init(eth_w5500_ctx_t *ctx)
  *
  * @return 0 in case of success, -ENOENT if no free socket found
  *******************************************************************************/
-yaa_err_t w5500_net_find_free_socket(eth_w5500_ctx_t *dev, uint8_t *sock_id)
+rdnx_err_t w5500_net_find_free_socket(eth_w5500_ctx_t *dev, uint8_t *sock_id)
 {
     uint8_t i;
 
@@ -612,10 +612,10 @@ yaa_err_t w5500_net_find_free_socket(eth_w5500_ctx_t *dev, uint8_t *sock_id)
         if (!dev->sockets[i].in_use)
         {
             *sock_id = i;
-            return YAA_ERR_OK;
+            return RDNX_ERR_OK;
         }
     }
-    return YAA_ERR_NORESOURCE;
+    return RDNX_ERR_NORESOURCE;
 }
 
 /******************************************************************************
@@ -625,42 +625,42 @@ yaa_err_t w5500_net_find_free_socket(eth_w5500_ctx_t *dev, uint8_t *sock_id)
  *
  * @return 0 in case of success, negative error code otherwise
 *******************************************************************************/
-yaa_err_t w5500_reset(eth_w5500_ctx_t *ctx)
+rdnx_err_t w5500_reset(eth_w5500_ctx_t *ctx)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint8_t mr;
     uint8_t ver = 0x00;
 
     if (ctx->gpio_reset)
     {
-        ret = yaa_gpio_set(ctx->gpio_reset, 0);
-        if (ret != YAA_ERR_OK)
+        ret = rdnx_gpio_set(ctx->gpio_reset, 0);
+        if (ret != RDNX_ERR_OK)
         {
             return ret;
         }
 
-        yaa_mdelay(1); // 500 us min per datasheet
+        rdnx_mdelay(1); // 500 us min per datasheet
 
-        ret = yaa_gpio_set(ctx->gpio_reset, 1);
-        if (ret != YAA_ERR_OK)
+        ret = rdnx_gpio_set(ctx->gpio_reset, 1);
+        if (ret != RDNX_ERR_OK)
         {
             return ret;
         }
 
         /* Wait for reset to complete */
-        yaa_mdelay(2); // wait for internal reset
+        rdnx_mdelay(2); // wait for internal reset
 
         W5500_DEB("GPIO reset done");
     }
 
     mr = W5500_MR_RST;
     ret = w5500_reg_write(ctx, W5500_COMMON_REG, W5500_MR, &mr, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         return ret;
     }
 
-    yaa_mdelay(2); // small delay to let W5500 reset
+    rdnx_mdelay(2); // small delay to let W5500 reset
 
     // Wait for reset completion
     uint32_t timeout = W5500_RESET_TIMEOUT_CNT;
@@ -669,7 +669,7 @@ yaa_err_t w5500_reset(eth_w5500_ctx_t *ctx)
     {
         // Read mode register
         ret = w5500_reg_read(ctx, W5500_COMMON_REG, W5500_MR, &mr, 1);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             return ret;
         }
@@ -679,17 +679,17 @@ yaa_err_t w5500_reset(eth_w5500_ctx_t *ctx)
             break;  // Reset finished
         }
 
-        yaa_mdelay(10);
+        rdnx_mdelay(10);
     } while (--timeout > 0);
 
     if (timeout == 0)
     {
         W5500_ERR("Reset timeout");
-        return YAA_ERR_TIMEOUT;
+        return RDNX_ERR_TIMEOUT;
     }
 
     ret = w5500_reg_read(ctx, W5500_COMMON_REG, W5500_VERSIONR, &ver, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         return ret;
     }
@@ -697,11 +697,11 @@ yaa_err_t w5500_reset(eth_w5500_ctx_t *ctx)
     if (ver != W5500_CHIP_VERSION)
     {
         W5500_ERR("Chip version incorrect 0x%02X", ver);
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
 
     W5500_DEB("Reset done");
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -711,24 +711,24 @@ yaa_err_t w5500_reset(eth_w5500_ctx_t *ctx)
  *
  * @return 0 in case of success, negative error code otherwise
 *******************************************************************************/
-yaa_err_t w5500_setup(eth_w5500_ctx_t *ctx)
+rdnx_err_t w5500_setup(eth_w5500_ctx_t *ctx)
 {
-	yaa_err_t ret;
+	rdnx_err_t ret;
 
 	ret = w5500_reset(ctx);
-	if (ret != YAA_ERR_OK)
+	if (ret != RDNX_ERR_OK)
     {
 		return ret;
     }
 
 	ret = w5500_set_mac(ctx, ctx->mac_addr);
-	if (ret != YAA_ERR_OK)
+	if (ret != RDNX_ERR_OK)
     {
 		return ret;
     }
 
 	ret = w5500_tcp_config(ctx, ctx->retry_time, ctx->retry_count);
-	if (ret != YAA_ERR_OK)
+	if (ret != RDNX_ERR_OK)
     {
 		return ret;
     }
@@ -742,35 +742,35 @@ yaa_err_t w5500_setup(eth_w5500_ctx_t *ctx)
  *
  * @param dev - The device descriptor
  *
- * @return 0 if link is up, YAA_ERR_NORESOURCE if link is down, other negative codes on error
+ * @return 0 if link is up, RDNX_ERR_NORESOURCE if link is down, other negative codes on error
 *******************************************************************************/
-yaa_err_t w5500_check_link_status(eth_w5500_ctx_t *dev)
+rdnx_err_t w5500_check_link_status(eth_w5500_ctx_t *dev)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint8_t phycfgr = 0;
 
     ret = w5500_reg_read(dev, W5500_COMMON_REG, W5500_PHYCFGR, &phycfgr, 1);
-    if (ret != YAA_ERR_OK)
+    if (ret != RDNX_ERR_OK)
     {
         return ret;
     }
 
     W5500_DEB("PHY Config REG 0x%02X", phycfgr);
 
-    if (!yaa_field_get(W5500_PHYCFGR_LNK, phycfgr))
+    if (!rdnx_field_get(W5500_PHYCFGR_LNK, phycfgr))
     {
-        return YAA_ERR_NORESOURCE;
+        return RDNX_ERR_NORESOURCE;
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
-yaa_err_t w5500_global_irq_config(eth_w5500_ctx_t *dev, uint8_t imr)
+rdnx_err_t w5500_global_irq_config(eth_w5500_ctx_t *dev, uint8_t imr)
 {
     return w5500_reg_write(dev, W5500_COMMON_REG, W5500_IMR, &imr, 1);
 }
 
-yaa_err_t w5500_global_irq_clear(eth_w5500_ctx_t *dev, uint8_t imr)
+rdnx_err_t w5500_global_irq_clear(eth_w5500_ctx_t *dev, uint8_t imr)
 {
     return w5500_reg_write(dev, W5500_COMMON_REG, W5500_IR, &imr, 1);
 }
@@ -782,12 +782,12 @@ uint8_t w5500_global_irq_get(eth_w5500_ctx_t *dev)
     return ir;
 }
 
-yaa_err_t w5500_socket_irq_config(eth_w5500_ctx_t *dev, uint8_t mask)
+rdnx_err_t w5500_socket_irq_config(eth_w5500_ctx_t *dev, uint8_t mask)
 {
     return w5500_reg_write(dev, W5500_COMMON_REG, W5500_SIMR, &mask, 1);
 }
 
-yaa_err_t w5500_socket_irq_clear(eth_w5500_ctx_t *dev, uint8_t mask)
+rdnx_err_t w5500_socket_irq_clear(eth_w5500_ctx_t *dev, uint8_t mask)
 {
     return w5500_reg_write(dev, W5500_COMMON_REG, W5500_SIR, &mask, 1);
 }
@@ -828,9 +828,9 @@ void w5500_irq_handler(eth_w5500_ctx_t *dev)
  *
  * @return 0 on success, negative error code otherwise
 *******************************************************************************/
-yaa_err_t w5500_tcp_config(eth_w5500_ctx_t *dev, uint16_t retry_time, uint8_t retry_count)
+rdnx_err_t w5500_tcp_config(eth_w5500_ctx_t *dev, uint16_t retry_time, uint8_t retry_count)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint8_t buf[2];
 
     if (retry_time)
@@ -839,7 +839,7 @@ yaa_err_t w5500_tcp_config(eth_w5500_ctx_t *dev, uint16_t retry_time, uint8_t re
         buf[1] = W5500_BYTE_LOW(retry_time);
 
         ret = w5500_reg_write(dev, W5500_COMMON_REG, W5500_RTR, buf, 2);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             return ret;
         }
@@ -848,7 +848,7 @@ yaa_err_t w5500_tcp_config(eth_w5500_ctx_t *dev, uint16_t retry_time, uint8_t re
     if (retry_count)
     {
         ret = w5500_reg_write(dev, W5500_COMMON_REG, W5500_RCR, &retry_count, 1);
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             return ret;
         }
@@ -890,13 +890,13 @@ yaa_err_t w5500_tcp_config(eth_w5500_ctx_t *dev, uint16_t retry_time, uint8_t re
         {
             break;  // MACRAW is set
         }
-        yaa_mdelay(10);
+        rdnx_mdelay(10);
     } while (--timeout > 0);
 
     if (timeout == 0)
     {
         W5500_ERR("Open MACRAW timeout");
-        return YAA_ERR_TIMEOUT;
+        return RDNX_ERR_TIMEOUT;
     }
 
     W5500_DEB("MACRAW open OK");
@@ -911,7 +911,7 @@ yaa_err_t w5500_tcp_config(eth_w5500_ctx_t *dev, uint16_t retry_time, uint8_t re
 #endif
     W5500_DEB("TCP config done");
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -922,7 +922,7 @@ yaa_err_t w5500_tcp_config(eth_w5500_ctx_t *dev, uint16_t retry_time, uint8_t re
  *
  * @return 0 in case of success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_set_mac(eth_w5500_ctx_t *ctx, const uint8_t mac[6])
+rdnx_err_t w5500_set_mac(eth_w5500_ctx_t *ctx, const uint8_t mac[6])
 {
     W5500_DEB("Set MAC %02X:%02X:%02X:%02X:%02X:%02X",
               mac[0], mac[1], mac[2],
@@ -939,7 +939,7 @@ yaa_err_t w5500_set_mac(eth_w5500_ctx_t *ctx, const uint8_t mac[6])
  *
  * @return 0 in case of success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_set_ip(eth_w5500_ctx_t *ctx, const uint8_t ip[4])
+rdnx_err_t w5500_set_ip(eth_w5500_ctx_t *ctx, const uint8_t ip[4])
 {
     W5500_DEB("Set IP %u.%u.%u.%u",
               ip[0], ip[1], ip[2], ip[3]);
@@ -955,7 +955,7 @@ yaa_err_t w5500_set_ip(eth_w5500_ctx_t *ctx, const uint8_t ip[4])
  *
  * @return 0 in case of success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_set_subnet(eth_w5500_ctx_t *ctx, const uint8_t subnet[4])
+rdnx_err_t w5500_set_subnet(eth_w5500_ctx_t *ctx, const uint8_t subnet[4])
 {
     W5500_DEB("Set Subnet %u.%u.%u.%u",
               subnet[0], subnet[1], subnet[2], subnet[3]);
@@ -971,7 +971,7 @@ yaa_err_t w5500_set_subnet(eth_w5500_ctx_t *ctx, const uint8_t subnet[4])
  *
  * @return 0 in case of success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_set_gateway(eth_w5500_ctx_t *ctx, const uint8_t gateway[4])
+rdnx_err_t w5500_set_gateway(eth_w5500_ctx_t *ctx, const uint8_t gateway[4])
 {
     W5500_DEB("Set Gateway %u.%u.%u.%u",
               gateway[0], gateway[1], gateway[2], gateway[3]);
@@ -987,7 +987,7 @@ yaa_err_t w5500_set_gateway(eth_w5500_ctx_t *ctx, const uint8_t gateway[4])
  *
  * @return 0 in case of success, negative error code otherwise
  *******************************************************************************/
-yaa_err_t w5500_get_mac(eth_w5500_ctx_t *ctx, uint8_t mac[6])
+rdnx_err_t w5500_get_mac(eth_w5500_ctx_t *ctx, uint8_t mac[6])
 {
     return w5500_reg_read(ctx, W5500_COMMON_REG, W5500_SHAR, mac, 6);
 }
@@ -1000,7 +1000,7 @@ yaa_err_t w5500_get_mac(eth_w5500_ctx_t *ctx, uint8_t mac[6])
  *
  * @return 0 in case of success, negative error code otherwise
 *******************************************************************************/
-yaa_err_t w5500_get_ip(eth_w5500_ctx_t *ctx, uint8_t ip[4])
+rdnx_err_t w5500_get_ip(eth_w5500_ctx_t *ctx, uint8_t ip[4])
 {
     return w5500_reg_read(ctx, W5500_COMMON_REG, W5500_SIPR, ip, 4);
 }
@@ -1013,7 +1013,7 @@ yaa_err_t w5500_get_ip(eth_w5500_ctx_t *ctx, uint8_t ip[4])
  *
  * @return 0 in case of success, negative error code otherwise
 *******************************************************************************/
-yaa_err_t w5500_get_subnet(eth_w5500_ctx_t *ctx, uint8_t subnet[4])
+rdnx_err_t w5500_get_subnet(eth_w5500_ctx_t *ctx, uint8_t subnet[4])
 {
     return w5500_reg_read(ctx, W5500_COMMON_REG, W5500_SUBR, subnet, 4);
 }
@@ -1026,7 +1026,7 @@ yaa_err_t w5500_get_subnet(eth_w5500_ctx_t *ctx, uint8_t subnet[4])
  *
  * @return 0 in case of success, negative error code otherwise
 *******************************************************************************/
-yaa_err_t w5500_get_gateway(eth_w5500_ctx_t *ctx, uint8_t gateway[4])
+rdnx_err_t w5500_get_gateway(eth_w5500_ctx_t *ctx, uint8_t gateway[4])
 {
     return w5500_reg_read(ctx, W5500_COMMON_REG, W5500_GAR, gateway, 4);
 }
@@ -1039,11 +1039,11 @@ yaa_err_t w5500_get_gateway(eth_w5500_ctx_t *ctx, uint8_t gateway[4])
  *
  * @return 0 on success, negative error code otherwise
 *******************************************************************************/
-yaa_err_t w5500_net_addr_net_to_w5500(const yaa_sockaddr_t *src, struct w5500_socket_address *dst)
+rdnx_err_t w5500_net_addr_net_to_w5500(const rdnx_sockaddr_t *src, struct w5500_socket_address *dst)
 {
     if (src == NULL || dst == NULL)
     {
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
     uint32_t addr = src->addr.ip.v4.value;
@@ -1056,7 +1056,7 @@ yaa_err_t w5500_net_addr_net_to_w5500(const yaa_sockaddr_t *src, struct w5500_so
     dst->port[0] = W5500_BYTE_HIGH(src->port);
     dst->port[1] = W5500_BYTE_LOW(src->port);
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -1067,14 +1067,14 @@ yaa_err_t w5500_net_addr_net_to_w5500(const yaa_sockaddr_t *src, struct w5500_so
  *
  * @return 0 on success, negative error code otherwise
 *******************************************************************************/
-yaa_err_t w5500_net_addr_w5500_to_net(struct w5500_socket_address *src, yaa_sockaddr_t *dst)
+rdnx_err_t w5500_net_addr_w5500_to_net(struct w5500_socket_address *src, rdnx_sockaddr_t *dst)
 {
     if (src == NULL || dst == NULL)
     {
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
-    dst->addr.type = YAA_IPADDR_TYPE_V4;
+    dst->addr.type = RDNX_IPADDR_TYPE_V4;
     dst->addr.ip.v4.value =
           ((uint32_t)src->ip[0] << 24)
         | ((uint32_t)src->ip[1] << 16)
@@ -1085,7 +1085,7 @@ yaa_err_t w5500_net_addr_w5500_to_net(struct w5500_socket_address *src, yaa_sock
           ((uint16_t)src->port[0] << 8)
         | ((uint16_t)src->port[1]);
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /******************************************************************************
@@ -1096,7 +1096,7 @@ yaa_err_t w5500_net_addr_w5500_to_net(struct w5500_socket_address *src, yaa_sock
 
 void w5500_dump_reg(eth_w5500_ctx_t *ctx)
 {
-    yaa_err_t ret;
+    rdnx_err_t ret;
     uint16_t addr;
     uint8_t buf[16];
 
@@ -1116,7 +1116,7 @@ void w5500_dump_reg(eth_w5500_ctx_t *ctx)
 
         printf("%02X : ", addr);
 
-        if (ret != YAA_ERR_OK)
+        if (ret != RDNX_ERR_OK)
         {
             printf("Read error\r\n");
             continue;
@@ -1133,7 +1133,7 @@ void w5500_dump_reg(eth_w5500_ctx_t *ctx)
     printf("\r\n");
 }
 
-#ifdef YAA_W5500_UNDERLINE
+#ifdef RDNX_W5500_UNDERLINE
 static void spi_ll_on()
 {
     if (eth_ctx == NULL)
@@ -1141,7 +1141,7 @@ static void spi_ll_on()
         return;
     }
 
-    (void)yaa_gpio_set(eth_ctx->gpio_cs, 0);
+    (void)rdnx_gpio_set(eth_ctx->gpio_cs, 0);
 }
 
 static void spi_ll_off()
@@ -1151,7 +1151,7 @@ static void spi_ll_off()
         return;
     }
 
-    (void)yaa_gpio_set(eth_ctx->gpio_cs, 1);
+    (void)rdnx_gpio_set(eth_ctx->gpio_cs, 1);
 }
 
 static uint8_t spi_ll_spio(uint8_t val)
@@ -1170,7 +1170,7 @@ static void wz_rst_on()
         return;
     }
 
-    (void)yaa_gpio_set(eth_ctx->gpio_reset, 0);
+    (void)rdnx_gpio_set(eth_ctx->gpio_reset, 0);
 }
 
 static void wz_rst_off()
@@ -1179,15 +1179,15 @@ static void wz_rst_off()
     {
         return;
     }
-    (void)yaa_gpio_set(eth_ctx->gpio_reset, 1);
+    (void)rdnx_gpio_set(eth_ctx->gpio_reset, 1);
 }
-#endif /* YAA_W5500_UNDERLINE */
+#endif /* RDNX_W5500_UNDERLINE */
 
-static void w5500_irq_callback(yaa_gpio_port_t port, yaa_gpio_pin_t pin, void *ctx)
+static void w5500_irq_callback(rdnx_gpio_port_t port, rdnx_gpio_pin_t pin, void *ctx)
 {
-    YAA_UNUSED(port);
-    YAA_UNUSED(pin);
-    YAA_UNUSED(ctx);
+    RDNX_UNUSED(port);
+    RDNX_UNUSED(pin);
+    RDNX_UNUSED(ctx);
     W5500_DEB("Irq port : %d, pin :%d", port, (int)pin);
     w5500_irq_handler(ctx);
 }

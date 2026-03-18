@@ -7,18 +7,18 @@
  * logical positions of entries stored in NVRAM.
  *
  * The cache is currently implemented as a linear array of
- * ::yaa_nvram_entry_t structures.
+ * ::rdnx_nvram_entry_t structures.
  *
  * @note
  * - Lookup complexity is O(n) due to linear search.
  * - Performance may degrade as the number of unique keys approaches
- *   ::YAA_NVRAM_MAX_ENTRIES.
+ *   ::RDNX_NVRAM_MAX_ENTRIES.
  * - The cache resides entirely in RAM.
  *
  * To reduce RAM usage:
- * - Decrease ::YAA_NVRAM_MAX_ENTRIES.
- * - Adjust types ::yaa_nvram_key_t and ::yaa_nvram_offset_t.
- * - Consider packing ::yaa_nvram_entry_t if alignment allows.
+ * - Decrease ::RDNX_NVRAM_MAX_ENTRIES.
+ * - Adjust types ::rdnx_nvram_key_t and ::rdnx_nvram_offset_t.
+ * - Consider packing ::rdnx_nvram_entry_t if alignment allows.
  */
 
 /* ============================================================================
@@ -29,12 +29,12 @@
 #include <stddef.h>
 
 /* Core includes. */
-#include "yaa_types.h"
-#include "yaa_macro.h"
+#include "rdnx_types.h"
+#include "rdnx_macro.h"
 #include "map.h"
 #include "entry.h"
-#include "yaa_nvram.h"
-#include "yaa_nvram_internal.h"
+#include "rdnx_nvram.h"
+#include "rdnx_nvram_internal.h"
 
 /* ============================================================================
  * Private Variable Definitions
@@ -54,25 +54,25 @@
  *                    of the matching entry on success.
  *
  * @return
- * - ::YAA_ERR_OK        Entry found.
- * - ::YAA_ERR_NOTFOUND  No entry with the specified key exists.
+ * - ::RDNX_ERR_OK        Entry found.
+ * - ::RDNX_ERR_NOTFOUND  No entry with the specified key exists.
  */
-yaa_err_t yaa_nvram_get_entry(struct yaa_nvram_ctx *ctx,
-                                const yaa_nvram_key_t key,
-                                yaa_nvram_entry_t **entry)
+rdnx_err_t rdnx_nvram_get_entry(struct rdnx_nvram_ctx *ctx,
+                                const rdnx_nvram_key_t key,
+                                rdnx_nvram_entry_t **entry)
 {
-    for (yaa_nvram_key_t i = 0; i < ctx->used_entries; i++)
+    for (rdnx_nvram_key_t i = 0; i < ctx->used_entries; i++)
     {
-        YAA_ASSERT(i < YAA_NVRAM_MAX_ENTRIES);
-        *entry = &ctx->yaa_nvram_entries[i];
+        RDNX_ASSERT(i < RDNX_NVRAM_MAX_ENTRIES);
+        *entry = &ctx->rdnx_nvram_entries[i];
 
-        if (key == ctx->yaa_nvram_entries[i].key)
+        if (key == ctx->rdnx_nvram_entries[i].key)
         {
-            return YAA_ERR_OK;
+            return RDNX_ERR_OK;
         }
     }
 
-    return YAA_ERR_NOTFOUND;
+    return RDNX_ERR_NOTFOUND;
 }
 
 /**
@@ -83,19 +83,19 @@ yaa_err_t yaa_nvram_get_entry(struct yaa_nvram_ctx *ctx,
  * @param[in] number  Entry index (0-based).
  *
  * @return
- * - Pointer to ::yaa_nvram_entry_t if index is valid.
+ * - Pointer to ::rdnx_nvram_entry_t if index is valid.
  * - NULL if index is out of range.
  */
-yaa_nvram_entry_t *yaa_nvram_get_entry_by_id(struct yaa_nvram_ctx *ctx,
-                                               const yaa_nvram_key_t number)
+rdnx_nvram_entry_t *rdnx_nvram_get_entry_by_id(struct rdnx_nvram_ctx *ctx,
+                                               const rdnx_nvram_key_t number)
 {
-    if (number >= YAA_NVRAM_MAX_ENTRIES)
+    if (number >= RDNX_NVRAM_MAX_ENTRIES)
     {
         NVRAM_ERR("Boundary fail");
         return NULL;
     }
 
-    return &ctx->yaa_nvram_entries[number];
+    return &ctx->rdnx_nvram_entries[number];
 }
 
 /**
@@ -106,19 +106,19 @@ yaa_nvram_entry_t *yaa_nvram_get_entry_by_id(struct yaa_nvram_ctx *ctx,
  * @warning
  * This function does NOT check for available space.
  * The caller must ensure that free entries are available by
- * calling ::yaa_nvram_map_free_entries().
+ * calling ::rdnx_nvram_map_free_entries().
  *
- * @return Pointer to newly allocated ::yaa_nvram_entry_t.
+ * @return Pointer to newly allocated ::rdnx_nvram_entry_t.
  */
-yaa_nvram_entry_t *yaa_nvram_create_entry(struct yaa_nvram_ctx *ctx)
+rdnx_nvram_entry_t *rdnx_nvram_create_entry(struct rdnx_nvram_ctx *ctx)
 {
-    const yaa_nvram_key_t key = ctx->used_entries;
+    const rdnx_nvram_key_t key = ctx->used_entries;
     ctx->used_entries += 1;
 
     NVRAM_DEB("Create entry key %d", (int)key);
 
-    YAA_ASSERT(key < YAA_NVRAM_MAX_ENTRIES);
-    return &ctx->yaa_nvram_entries[key];
+    RDNX_ASSERT(key < RDNX_NVRAM_MAX_ENTRIES);
+    return &ctx->rdnx_nvram_entries[key];
 }
 
 /**
@@ -131,31 +131,31 @@ yaa_nvram_entry_t *yaa_nvram_create_entry(struct yaa_nvram_ctx *ctx)
  * @param[in] offset  Logical offset of the entry in NVRAM (in bytes).
  *
  * @return
- * - ::YAA_ERR_OK     Entry successfully updated or created.
- * - ::YAA_ERR_NOMEM  No free cache entries available.
+ * - ::RDNX_ERR_OK     Entry successfully updated or created.
+ * - ::RDNX_ERR_NOMEM  No free cache entries available.
  */
-yaa_err_t yaa_nvram_update_entry(struct yaa_nvram_ctx *ctx,
-                                   const yaa_nvram_key_t key,
-                                   const yaa_nvram_offset_t offset)
+rdnx_err_t rdnx_nvram_update_entry(struct rdnx_nvram_ctx *ctx,
+                                   const rdnx_nvram_key_t key,
+                                   const rdnx_nvram_offset_t offset)
 {
-    yaa_nvram_entry_t *entry;
+    rdnx_nvram_entry_t *entry;
 
     NVRAM_DEB("Update entry key %d offset %d", (int)key, (int)offset);
 
-    if (YAA_ERR_NOTFOUND == yaa_nvram_get_entry(ctx, key, &entry))
+    if (RDNX_ERR_NOTFOUND == rdnx_nvram_get_entry(ctx, key, &entry))
     {
-        if (0 == yaa_nvram_map_free_entries(ctx))
+        if (0 == rdnx_nvram_map_free_entries(ctx))
         {
-            return YAA_ERR_NOMEM;
+            return RDNX_ERR_NOMEM;
         }
 
-        entry = yaa_nvram_create_entry(ctx);
+        entry = rdnx_nvram_create_entry(ctx);
         entry->key = key;
     }
 
     entry->offset = offset;
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /**
@@ -164,7 +164,7 @@ yaa_err_t yaa_nvram_update_entry(struct yaa_nvram_ctx *ctx,
  * Clears all stored entries by resetting the usage counter.
  * Previously stored mappings become invalid.
  */
-void yaa_nvram_reset_map(struct yaa_nvram_ctx *ctx)
+void rdnx_nvram_reset_map(struct rdnx_nvram_ctx *ctx)
 {
     NVRAM_DEB("Set entries to 0");
     ctx->used_entries = 0;
@@ -175,7 +175,7 @@ void yaa_nvram_reset_map(struct yaa_nvram_ctx *ctx)
  *
  * @return Number of currently stored unique keys.
  */
-size_t yaa_nvram_get_used_entries(const struct yaa_nvram_ctx *ctx)
+size_t rdnx_nvram_get_used_entries(const struct rdnx_nvram_ctx *ctx)
 {
     NVRAM_DEB("Use entries used : %d", (int)ctx->used_entries);
     return ctx->used_entries;
@@ -186,8 +186,8 @@ size_t yaa_nvram_get_used_entries(const struct yaa_nvram_ctx *ctx)
  *
  * @return Remaining available entry slots in the cache.
  */
-size_t yaa_nvram_map_free_entries(const struct yaa_nvram_ctx *ctx)
+size_t rdnx_nvram_map_free_entries(const struct rdnx_nvram_ctx *ctx)
 {
-    NVRAM_DEB("Free entries max : %d, used : %d", (int)YAA_NVRAM_MAX_ENTRIES, (int)ctx->used_entries);
-    return (YAA_NVRAM_MAX_ENTRIES - ctx->used_entries);
+    NVRAM_DEB("Free entries max : %d, used : %d", (int)RDNX_NVRAM_MAX_ENTRIES, (int)ctx->used_entries);
+    return (RDNX_NVRAM_MAX_ENTRIES - ctx->used_entries);
 }

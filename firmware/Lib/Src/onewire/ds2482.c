@@ -11,11 +11,11 @@
 #include <stdint.h>
 
 /* Core includes. */
-#include <hal/yaa_i2c.h>
+#include <hal/rdnx_i2c.h>
 #include <onewire/ds2482.h>
-#include <yaa_macro.h>
-#include <yaa_sal.h>
-#include <yaa_types.h>
+#include <rdnx_macro.h>
+#include <rdnx_sal.h>
+#include <rdnx_types.h>
 
 /* ============================================================================
  * Private Macro Definitions
@@ -62,7 +62,7 @@ typedef struct ds2482_ctx
     /**
      * @brief I2C handle
      */
-    yaa_i2c_handle_t i2c;
+    rdnx_i2c_handle_t i2c;
 
     /**
      * @brief I2C address of the device
@@ -125,122 +125,122 @@ static unsigned char docrc8(ds2482_handle_t handle, unsigned char value);
  *   Presence pulse masking (cPPM) = off (0)
  *   Active pullup (cAPU) = on (CONFIG_APU = 0x01)
  */
-yaa_err_t ds2482_init(const ds2482_params_t *param, ds2482_handle_t *handle)
+rdnx_err_t ds2482_init(const ds2482_params_t *param, ds2482_handle_t *handle)
 {
-    yaa_err_t status;
+    rdnx_err_t status;
 
     if (param == NULL || param->i2c == NULL)
     {
-        return YAA_ERR_BADARG;
+        return RDNX_ERR_BADARG;
     }
 
-    ds2482_ctx_t *ctx = (ds2482_ctx_t *)yaa_alloc(sizeof(ds2482_ctx_t));
+    ds2482_ctx_t *ctx = (ds2482_ctx_t *)rdnx_alloc(sizeof(ds2482_ctx_t));
     if (ctx == NULL)
     {
-        return YAA_ERR_NOMEM;
+        return RDNX_ERR_NOMEM;
     }
 
     ctx->address = param->address;
     ctx->i2c = param->i2c;
 
-    yaa_i2c_set_timeout(ctx->i2c, DS2482_TIMEOUT_I2C);
+    rdnx_i2c_set_timeout(ctx->i2c, DS2482_TIMEOUT_I2C);
 
     status = ds2482_reset(ctx);
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
-        yaa_free(ctx);
+        rdnx_free(ctx);
         return status;
     }
 
     status = ds2482_write_config(ctx, DS2482_CONFIG_APU);
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
-        yaa_free(ctx);
+        rdnx_free(ctx);
         return status;
     }
 
     uint8_t config = 0;
-    status = yaa_i2c_read(ctx->i2c, ctx->address, 0, YAA_I2C_REGISTER_NONE, &config, 1, true);
-    if (status != YAA_ERR_OK)
+    status = rdnx_i2c_read(ctx->i2c, ctx->address, 0, RDNX_I2C_REGISTER_NONE, &config, 1, true);
+    if (status != RDNX_ERR_OK)
     {
-        yaa_free(ctx);
+        rdnx_free(ctx);
         return status;
     }
     else if (config != DS2482_CONFIG_APU)
     {
-        yaa_free(ctx);
-        return YAA_ERR_FAIL;
+        rdnx_free(ctx);
+        return RDNX_ERR_FAIL;
     }
 
     *handle = ctx;
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
-yaa_err_t ds2482_destroy(ds2482_handle_t handle)
+rdnx_err_t ds2482_destroy(ds2482_handle_t handle)
 {
     ds2482_ctx_t *ctx = handle;
 
     if (ctx != NULL)
     {
-        yaa_free(ctx);
+        rdnx_free(ctx);
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
-yaa_err_t ds2482_reset(ds2482_handle_t handle)
+rdnx_err_t ds2482_reset(ds2482_handle_t handle)
 {
     uint8_t data[1] = { DS2482_CMD_RESET };
-    yaa_err_t status =
-        yaa_i2c_write(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, data, sizeof(data), true);
+    rdnx_err_t status =
+        rdnx_i2c_write(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, data, sizeof(data), true);
     return status;
 }
 
-yaa_err_t ds2482_write_config(ds2482_handle_t handle, uint8_t config)
+rdnx_err_t ds2482_write_config(ds2482_handle_t handle, uint8_t config)
 {
     uint8_t data[2] = { DS2482_CMD_WRITE_CONFIG, config | (~config << 4) };
-    yaa_err_t status =
-        yaa_i2c_write(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, data, sizeof(data), true);
+    rdnx_err_t status =
+        rdnx_i2c_write(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, data, sizeof(data), true);
     return status;
 }
 
-yaa_err_t ds2482_set_read_ptr(ds2482_handle_t handle, uint8_t read_ptr)
+rdnx_err_t ds2482_set_read_ptr(ds2482_handle_t handle, uint8_t read_ptr)
 {
     uint8_t data[2] = { DS2482_CMD_SET_READ_PTR, read_ptr };
-    yaa_err_t status =
-        yaa_i2c_write(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, data, sizeof(data), true);
+    rdnx_err_t status =
+        rdnx_i2c_write(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, data, sizeof(data), true);
     return status;
 }
 
-yaa_err_t ds2482_1w_reset(ds2482_handle_t handle, bool *const presence)
+rdnx_err_t ds2482_1w_reset(ds2482_handle_t handle, bool *const presence)
 {
     uint8_t data[1] = { DS2482_CMD_1WIRE_RESET };
-    yaa_err_t status =
-        yaa_i2c_write(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)data, sizeof(data), true);
-    if (status != YAA_ERR_OK)
+    rdnx_err_t status =
+        rdnx_i2c_write(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)data, sizeof(data), true);
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
     ds2482_status_t status_reg = { .BUSY = 1 };
-    uint32_t timeout = yaa_systemtime();
+    uint32_t timeout = rdnx_systemtime();
     do
     {
         status =
-            yaa_i2c_read(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)&status_reg, 1, true);
-        if (status != YAA_ERR_OK)
+            rdnx_i2c_read(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)&status_reg, 1, true);
+        if (status != RDNX_ERR_OK)
         {
             return status;
         }
-        if (yaa_istimespent(timeout, DS2482_TIMEOUT_1W))
+        if (rdnx_istimespent(timeout, DS2482_TIMEOUT_1W))
         {
-            return YAA_ERR_TIMEOUT;
+            return RDNX_ERR_TIMEOUT;
         }
     } while (status_reg.BUSY);
 
     if (status_reg.SHORT)
     {
-        return YAA_ERR_IO;
+        return RDNX_ERR_IO;
     }
 
     if (presence != NULL)
@@ -248,142 +248,142 @@ yaa_err_t ds2482_1w_reset(ds2482_handle_t handle, bool *const presence)
         *presence = status_reg.PPD;
     }
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
-yaa_err_t ds2482_1w_write_byte(ds2482_handle_t handle, uint8_t byte)
+rdnx_err_t ds2482_1w_write_byte(ds2482_handle_t handle, uint8_t byte)
 {
     uint8_t data[2] = { DS2482_CMD_1WIRE_WRITE_BYTE, byte };
-    yaa_err_t status =
-        yaa_i2c_write(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)data, sizeof(data), true);
-    if (status != YAA_ERR_OK)
+    rdnx_err_t status =
+        rdnx_i2c_write(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)data, sizeof(data), true);
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
 
     ds2482_status_t status_reg = { .BUSY = 1 };
-    uint32_t timeout = yaa_systemtime();
+    uint32_t timeout = rdnx_systemtime();
     do
     {
         status =
-            yaa_i2c_read(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)&status_reg, 1, true);
-        if (status != YAA_ERR_OK)
+            rdnx_i2c_read(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)&status_reg, 1, true);
+        if (status != RDNX_ERR_OK)
         {
             return status;
         }
-        if (yaa_istimespent(timeout, DS2482_TIMEOUT_1W))
+        if (rdnx_istimespent(timeout, DS2482_TIMEOUT_1W))
         {
-            return YAA_ERR_TIMEOUT;
+            return RDNX_ERR_TIMEOUT;
         }
     } while (status_reg.BUSY);
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
-yaa_err_t ds2482_1w_read_byte(ds2482_handle_t handle, uint8_t *const byte)
+rdnx_err_t ds2482_1w_read_byte(ds2482_handle_t handle, uint8_t *const byte)
 {
     uint8_t data[1] = { DS2482_CMD_1WIRE_READ_BYTE };
-    yaa_err_t status =
-        yaa_i2c_write(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)data, sizeof(data), true);
-    if (status != YAA_ERR_OK)
+    rdnx_err_t status =
+        rdnx_i2c_write(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)data, sizeof(data), true);
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
 
     ds2482_status_t status_reg = { .BUSY = 1 };
-    uint32_t timeout = yaa_systemtime();
+    uint32_t timeout = rdnx_systemtime();
     do
     {
         status =
-            yaa_i2c_read(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)&status_reg, 1, true);
-        if (status != YAA_ERR_OK)
+            rdnx_i2c_read(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)&status_reg, 1, true);
+        if (status != RDNX_ERR_OK)
         {
             return status;
         }
-        if (yaa_istimespent(timeout, DS2482_TIMEOUT_1W))
+        if (rdnx_istimespent(timeout, DS2482_TIMEOUT_1W))
         {
-            return YAA_ERR_TIMEOUT;
+            return RDNX_ERR_TIMEOUT;
         }
     } while (status_reg.BUSY);
 
     status = ds2482_set_read_ptr(handle, DS2482_READ_DATA);
-    if (status != YAA_ERR_OK)
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
 
-    return yaa_i2c_read(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)byte, 1, true);
+    return rdnx_i2c_read(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)byte, 1, true);
 }
 
-yaa_err_t ds2482_1w_read_bit(ds2482_handle_t handle, bool *const bit)
+rdnx_err_t ds2482_1w_read_bit(ds2482_handle_t handle, bool *const bit)
 {
     uint8_t data[2] = { DS2482_CMD_1WIRE_SINGLE_BIT, 0xFF };
-    yaa_err_t status =
-        yaa_i2c_write(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)data, sizeof(data), true);
-    if (status != YAA_ERR_OK)
+    rdnx_err_t status =
+        rdnx_i2c_write(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)data, sizeof(data), true);
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
 
     ds2482_status_t status_reg = { .BUSY = 1 };
-    uint32_t timeout = yaa_systemtime();
+    uint32_t timeout = rdnx_systemtime();
     do
     {
         status =
-            yaa_i2c_read(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)&status_reg, 1, true);
-        if (status != YAA_ERR_OK)
+            rdnx_i2c_read(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)&status_reg, 1, true);
+        if (status != RDNX_ERR_OK)
         {
             return status;
         }
-        if (yaa_istimespent(timeout, DS2482_TIMEOUT_1W))
+        if (rdnx_istimespent(timeout, DS2482_TIMEOUT_1W))
         {
-            return YAA_ERR_TIMEOUT;
+            return RDNX_ERR_TIMEOUT;
         }
     } while (status_reg.BUSY);
 
     *bit = status_reg.SBR;
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
-yaa_err_t ds2482_1w_write_bit(ds2482_handle_t handle, bool bit)
+rdnx_err_t ds2482_1w_write_bit(ds2482_handle_t handle, bool bit)
 {
     uint8_t data[2] = { DS2482_CMD_1WIRE_SINGLE_BIT, bit ? 0xFF : 0x00 };
-    yaa_err_t status =
-        yaa_i2c_write(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)data, sizeof(data), true);
-    if (status != YAA_ERR_OK)
+    rdnx_err_t status =
+        rdnx_i2c_write(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)data, sizeof(data), true);
+    if (status != RDNX_ERR_OK)
     {
         return status;
     }
 
     ds2482_status_t status_reg = { .BUSY = 1 };
-    uint32_t timeout = yaa_systemtime();
+    uint32_t timeout = rdnx_systemtime();
     do
     {
         status =
-            yaa_i2c_read(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, (uint8_t *)&status_reg, 1, true);
-        if (status != YAA_ERR_OK)
+            rdnx_i2c_read(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, (uint8_t *)&status_reg, 1, true);
+        if (status != RDNX_ERR_OK)
         {
             return status;
         }
-        if (yaa_istimespent(timeout, DS2482_TIMEOUT_1W))
+        if (rdnx_istimespent(timeout, DS2482_TIMEOUT_1W))
         {
-            return YAA_ERR_TIMEOUT;
+            return RDNX_ERR_TIMEOUT;
         }
     } while (status_reg.BUSY);
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
-yaa_err_t ds2482_1w_triplet(ds2482_handle_t handle, uint8_t dir)
+rdnx_err_t ds2482_1w_triplet(ds2482_handle_t handle, uint8_t dir)
 {
     uint8_t data[2] = { DS2482_CMD_1WIRE_TRIPLET, dir ? 0xFF : 0x00 };
-    yaa_err_t status =
-        yaa_i2c_write(handle->i2c, handle->address, 0, YAA_I2C_REGISTER_NONE, data, sizeof(data), true);
+    rdnx_err_t status =
+        rdnx_i2c_write(handle->i2c, handle->address, 0, RDNX_I2C_REGISTER_NONE, data, sizeof(data), true);
     return status;
 }
 
-yaa_err_t ds2482_1w_search(ds2482_handle_t handle, uint16_t max_devices, uint64_t devices[static max_devices])
+rdnx_err_t ds2482_1w_search(ds2482_handle_t handle, uint16_t max_devices, uint64_t devices[static max_devices])
 {
     uint16_t count = 0;
 
@@ -399,16 +399,16 @@ yaa_err_t ds2482_1w_search(ds2482_handle_t handle, uint16_t max_devices, uint64_
 
     } while (ow_next(handle) && count < max_devices);
 
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 /* Verify the device with the ROM number in ROM_NO buffer is present. */
-yaa_err_t ds2482_1w_verify_device(ds2482_handle_t handle, uint64_t device, bool *const present)
+rdnx_err_t ds2482_1w_verify_device(ds2482_handle_t handle, uint64_t device, bool *const present)
 {
-    YAA_UNUSED(present);
+    RDNX_UNUSED(present);
     uint8_t rom_backup[8];
     int i;
-    yaa_err_t rslt;
+    rdnx_err_t rslt;
 
     for (int i = 0; i < 8; i++)
     {
@@ -423,18 +423,18 @@ yaa_err_t ds2482_1w_verify_device(ds2482_handle_t handle, uint64_t device, bool 
     if (ow_search(handle))
     {
         // check if same device found
-        rslt = YAA_ERR_OK;
+        rslt = RDNX_ERR_OK;
         for (i = 0; i < 8; i++)
         {
             if (rom_backup[i] != handle->ROM_NO[i])
             {
-                rslt = YAA_ERR_NOTFOUND;
+                rslt = RDNX_ERR_NOTFOUND;
                 break;
             }
         }
     }
     else
-        rslt = YAA_ERR_NOTFOUND;
+        rslt = RDNX_ERR_NOTFOUND;
 
     /* Return the result of the verify */
     return rslt;

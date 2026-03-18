@@ -90,11 +90,11 @@ extern "C" {
  * ==========================================================================*/
 
 /* Mode Register (MR) bit values */
-#define W5500_MR_RST         YAA_BIT(7)    /* Reset */
-#define W5500_MR_WOL         YAA_BIT(5)    /* Wake on LAN */
-#define W5500_MR_PB          YAA_BIT(4)    /* Ping Block */
-#define W5500_MR_PPPOE       YAA_BIT(3)    /* PPPoE Mode */
-#define W5500_MR_FARP        YAA_BIT(1)    /* Force ARP */
+#define W5500_MR_RST         RDNX_BIT(7)    /* Reset */
+#define W5500_MR_WOL         RDNX_BIT(5)    /* Wake on LAN */
+#define W5500_MR_PB          RDNX_BIT(4)    /* Ping Block */
+#define W5500_MR_PPPOE       RDNX_BIT(3)    /* PPPoE Mode */
+#define W5500_MR_FARP        RDNX_BIT(1)    /* Force ARP */
 
 /* ============================================================================
  * Socket Mode Register (Sn_MR) Values
@@ -105,11 +105,11 @@ extern "C" {
 #define W5500_Sn_MR_TCP      0x01    /* TCP */
 #define W5500_Sn_MR_UDP      0x02    /* UDP */
 #define W5500_Sn_MR_MACRAW   0x04    /* MAC Raw mode */
-#define W5500_Sn_MR_NDMC     YAA_BIT(5)    /* No Delayed ACK */
-#define W5500_Sn_MR_MULTI    YAA_BIT(7)    /* Multicasting */
-#define W5500_Sn_MR_BCASTB   YAA_BIT(6)    /* Broadcast Blocking */
-#define W5500_Sn_MR_UCASTB   YAA_BIT(4)    /* Unicast Blocking (UDP mode) */
-#define W5500_Sn_MR_MIP6B    YAA_BIT(4)    /* IPv6 Blocking (MACRAW mode) */
+#define W5500_Sn_MR_NDMC     RDNX_BIT(5)    /* No Delayed ACK */
+#define W5500_Sn_MR_MULTI    RDNX_BIT(7)    /* Multicasting */
+#define W5500_Sn_MR_BCASTB   RDNX_BIT(6)    /* Broadcast Blocking */
+#define W5500_Sn_MR_UCASTB   RDNX_BIT(4)    /* Unicast Blocking (UDP mode) */
+#define W5500_Sn_MR_MIP6B    RDNX_BIT(4)    /* IPv6 Blocking (MACRAW mode) */
 
 /* ============================================================================
  * Socket Command Register (Sn_CR) Commands
