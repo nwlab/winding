@@ -54,6 +54,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     App/Src/app_main.cpp
     App/Src/app_log.cpp
+    App/Src/app_cnc.cpp
 )
 
 # Add include paths
@@ -73,7 +74,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 
     # Add user defined libraries
     rdnx_stm32
-    wl_motion
+    wl_lib
     StepperHAL
 )
 

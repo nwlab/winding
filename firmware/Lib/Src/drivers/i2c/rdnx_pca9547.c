@@ -235,6 +235,8 @@ static rdnx_err_t pca9547_write_command(pca9547_ctx_t *ctx, uint8_t command)
     uint8_t data[1] = { command };
     return rdnx_i2c_write(ctx->i2c, ctx->address, 0, RDNX_I2C_REGISTER_NONE, data, sizeof(data), true);
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(command);
     return RDNX_ERR_NOTSUP;
 #endif
 }
@@ -258,6 +260,8 @@ static rdnx_err_t pca9547_read_command(pca9547_ctx_t *ctx, uint8_t *status)
     }
     return ret;
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(status);
     return RDNX_ERR_NOTSUP;
 #endif
 }

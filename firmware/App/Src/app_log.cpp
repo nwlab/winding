@@ -20,8 +20,8 @@
 #include <stm32f4xx_hal_uart.h>
 
 /* Core includes. */
-#include "yaa_macro.h"
-#include "rtt/yaa_rtt.h"
+#include <rdnx_macro.h>
+#include <rtt/rdnx_rtt.h>
 
 /* App includes. */
 #include "app_log.h"
@@ -76,7 +76,7 @@
 uint8_t app_log_init(void)
 {
     app_log_print("\n\r== IO Monitor applicaiton ==\n\r");
-    return YAA_ERR_OK;
+    return RDNX_ERR_OK;
 }
 
 void app_log_print(const char *format, ...)
@@ -119,7 +119,7 @@ __attribute__((optimize("O0"))) void hardfault_print(const char *string)
  */
 int _write(int file, char *data, int len)
 {
-    YAA_UNUSED(file);
+    RDNX_UNUSED(file);
 #if defined(USE_RTT) && (USE_RTT != 0)
     (void)rdnx_rtt_write(rtt_handle, data, len);
 #else
@@ -127,6 +127,37 @@ int _write(int file, char *data, int len)
     HAL_UART_Transmit(UART_INSTANCE, (uint8_t *)data, len, 0xFFFF);
 #endif
     return len;
+}
+
+extern "C" int cprintk(const char *format,...)
+{
+    va_list args;
+    char   buffer[APP_LOG_BUFFER_SIZE];
+
+    va_start(args, format);
+    vsnprintf(buffer, APP_LOG_BUFFER_SIZE - 1, format, args);
+    va_end(args);
+
+    int sz = strlen(buffer);
+#if defined(USE_RTT) && (USE_RTT != 0)
+    (void)rdnx_rtt_write(rtt_handle, buffer, sz);
+#else
+    while (__HAL_UART_GET_FLAG(UART_INSTANCE, UART_FLAG_TC) != SET) {};
+    if (HAL_UART_Transmit(UART_INSTANCE, (uint8_t *)buffer, sz, 0xFFFF) != HAL_OK)
+    {
+        Error_Handler();
+    }
+#endif
+    return sz;
+}
+
+extern "C" void *cttyinit(unsigned int prm,void(*fnc)(char*,void*),void *dat,int pri)
+{
+    RDNX_UNUSED(prm);
+    RDNX_UNUSED(fnc);
+    RDNX_UNUSED(dat);
+    RDNX_UNUSED(pri);
+    return NULL;
 }
 
 // clang-format on

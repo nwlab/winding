@@ -44,7 +44,7 @@ typedef struct rdnx_platform_params
     /**
      * @brief Platform/ Application name
      */
-    char *name;
+    const char *name;
 
     /**
      * @brief Timer handle for udelay timeout function @ref rdnx_udelay.

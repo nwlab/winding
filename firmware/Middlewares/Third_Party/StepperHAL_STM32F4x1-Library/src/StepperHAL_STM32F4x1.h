@@ -17,6 +17,7 @@
 #include "stm32f4xx_hal.h"
 
 #include "StepperHAL_Utils.h"
+#include "StepperHAL_Debug.h"
 
 struct mm
 {
@@ -151,46 +152,46 @@ public:
     inline void useSCurve(bool enable)
     {
         (void)enable;
-        Serial.print("[StepperHAL] (");
-        Serial.print(getLabel());
-        Serial.print(") ");
-        Serial.print("useSCurve called but S-curve disabled. arg=");
-        Serial.println(enable ? "true" : "false");
+        SerialDB.print("[StepperHAL] (");
+        SerialDB.print(getLabel());
+        SerialDB.print(") ");
+        SerialDB.print("useSCurve called but S-curve disabled. arg=");
+        SerialDB.println(enable ? "true" : "false");
     }
     inline void setJerk(float /*jerkAcc*/)
     {
-        Serial.print("[StepperHAL] (");
-        Serial.print(getLabel());
-        Serial.print(") ");
-        Serial.println("setJerk called but S-curve disabled");
+        SerialDB.print("[StepperHAL] (");
+        SerialDB.print(getLabel());
+        SerialDB.print(") ");
+        SerialDB.println("setJerk called but S-curve disabled");
     }
     inline void setJerk(float /*jerkAcc*/, float /*jerkDec*/)
     {
-        Serial.print("[StepperHAL] (");
-        Serial.print(getLabel());
-        Serial.print(") ");
-        Serial.println("setJerk(acc,dec) called but S-curve disabled");
+        SerialDB.print("[StepperHAL] (");
+        SerialDB.print(getLabel());
+        SerialDB.print(") ");
+        SerialDB.println("setJerk(acc,dec) called but S-curve disabled");
     }
     inline void setJerkRatio(float /*ratio*/)
     {
-        Serial.print("[StepperHAL] (");
-        Serial.print(getLabel());
-        Serial.print(") ");
-        Serial.println("setJerkRatio called but S-curve disabled");
+        SerialDB.print("[StepperHAL] (");
+        SerialDB.print(getLabel());
+        SerialDB.print(") ");
+        SerialDB.println("setJerkRatio called but S-curve disabled");
     }
     inline void setManualJerk(float, float, float, float, float, float)
     {
-        Serial.print("[StepperHAL] (");
-        Serial.print(getLabel());
-        Serial.print(") ");
-        Serial.println("setManualJerk called but S-curve disabled");
+        SerialDB.print("[StepperHAL] (");
+        SerialDB.print(getLabel());
+        SerialDB.print(") ");
+        SerialDB.println("setManualJerk called but S-curve disabled");
     }
     inline void useDefaultJerk(bool /*enable*/)
     {
-        Serial.print("[StepperHAL] (");
-        Serial.print(getLabel());
-        Serial.print(") ");
-        Serial.println("useDefaultJerk called but S-curve disabled");
+        SerialDB.print("[StepperHAL] (");
+        SerialDB.print(getLabel());
+        SerialDB.print(") ");
+        SerialDB.println("useDefaultJerk called but S-curve disabled");
     }
 #endif
 

@@ -348,6 +348,9 @@ static rdnx_err_t LTC2946_write(ltc2946_ctx_t *ctx, uint8_t adc_command,
     return rdnx_i2c_write(ctx->i2c, ctx->address, adc_command,
                           RDNX_I2C_REGISTER_SIZE_8, &code, 1, 0);
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(adc_command);
+    RDNX_UNUSED(code);
     return RDNX_ERR_NOTSUP;
 #endif
 }
@@ -365,6 +368,9 @@ static rdnx_err_t LTC2946_write_16_bits(ltc2946_ctx_t *ctx,
     return rdnx_i2c_write(ctx->i2c, ctx->address, adc_command,
                           RDNX_I2C_REGISTER_SIZE_8, buf, 2, 0);
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(adc_command);
+    RDNX_UNUSED(code);
     return RDNX_ERR_NOTSUP;
 #endif
 }
@@ -383,6 +389,9 @@ static rdnx_err_t LTC2946_write_24_bits(ltc2946_ctx_t *ctx,
     return rdnx_i2c_write(ctx->i2c, ctx->address, adc_command,
                           RDNX_I2C_REGISTER_SIZE_8, buf, 3, 0);
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(adc_command);
+    RDNX_UNUSED(code);
     return RDNX_ERR_NOTSUP;
 #endif
 }
@@ -402,6 +411,9 @@ static rdnx_err_t LTC2946_write_32_bits(ltc2946_ctx_t *ctx,
     return rdnx_i2c_write(ctx->i2c, ctx->address, adc_command,
                           RDNX_I2C_REGISTER_SIZE_8, buf, 4, 0);
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(adc_command);
+    RDNX_UNUSED(code);
     return RDNX_ERR_NOTSUP;
 #endif
 }
@@ -414,6 +426,9 @@ static rdnx_err_t LTC2946_read(ltc2946_ctx_t *ctx, uint8_t adc_command,
     return rdnx_i2c_read(ctx->i2c, ctx->address, adc_command,
                          RDNX_I2C_REGISTER_SIZE_8, code, 1, 0);
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(adc_command);
+    RDNX_UNUSED(code);
     return RDNX_ERR_NOTSUP;
 #endif
 }
@@ -439,6 +454,9 @@ static rdnx_err_t LTC2946_read_12_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
 
     return RDNX_ERR_OK;
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(adc_command);
+    RDNX_UNUSED(code);
     return RDNX_ERR_NOTSUP;
 #endif
 }
@@ -464,6 +482,9 @@ static rdnx_err_t LTC2946_read_16_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
 
     return RDNX_ERR_OK;
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(adc_command);
+    RDNX_UNUSED(code);
     return RDNX_ERR_NOTSUP;
 #endif
 }
@@ -489,6 +510,9 @@ static rdnx_err_t LTC2946_read_24_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
 
     return RDNX_ERR_OK;
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(adc_command);
+    RDNX_UNUSED(code);
     return RDNX_ERR_NOTSUP;
 #endif
 }
@@ -517,6 +541,9 @@ static rdnx_err_t LTC2946_read_32_bits(ltc2946_ctx_t *ctx, uint8_t adc_command,
 
     return RDNX_ERR_OK;
 #else
+    RDNX_UNUSED(ctx);
+    RDNX_UNUSED(adc_command);
+    RDNX_UNUSED(code);
     return RDNX_ERR_NOTSUP;
 #endif
 }

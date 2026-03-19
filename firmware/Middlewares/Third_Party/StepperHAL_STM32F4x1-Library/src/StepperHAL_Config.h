@@ -1,8 +1,8 @@
 #pragma once
 
 // ---------- Feature selection (0 = off, 1 = on) ----------
-// Modifica qui per cambiare il comportamento di build.
-// Puoi sovrascrivere da riga di comando: -DUSE_S_CURVE=1 oppure -DUSE_S_CURVE=0
+// Edit here to change the build behavior.
+// You can override this from the command line: -DUSE_S_CURVE=1 or -DUSE_S_CURVE=0
 
 #ifndef USE_S_CURVE
   #define USE_S_CURVE 1
