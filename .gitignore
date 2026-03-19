@@ -65,4 +65,4 @@ build
 firmware/compile_commands.json
 
 # Proprietary code
-firmware/Middlewares/Third_Party/WL
+firmware/Middlewares/Third_Party
